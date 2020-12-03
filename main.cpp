@@ -3,5 +3,6 @@
 int main()
 {
 	//Game* mainGame = roleDeployment(int playerCount);
-	//turn();
+	//turnNight();
+	//turnDay();
 }

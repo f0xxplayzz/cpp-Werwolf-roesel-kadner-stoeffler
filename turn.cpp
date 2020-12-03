@@ -4,6 +4,7 @@
 #include <string>
 #include "Roles/villager.cpp"
 #include "Roles/werewolves.cpp"
+#include"narrator.cpp"
 class Game {
 	int werwolveCount;
 	std::vector<Player> alivePlayers;
@@ -23,8 +24,8 @@ public:
 
 	void voteExecution();
 };
-void startTurn() {
-	//narator(startRound);
+void turnNight() {
+	//Narrator.startRound();
 	//night{
 	/*for( all Players){
 	if( p is werewolve){
@@ -32,9 +33,13 @@ void startTurn() {
 		w.voteKill();
 		}
 	} 
+	//std::cout<<"Dein Zug ist vorbei"<<std::endl;
 	*/
 	//}
-	//day{
+	//checkWinCondition();
+}
+
+void turnDay() {
 	/*for(all Players){
 		p.voteExecution();
 	}
@@ -43,6 +48,5 @@ void startTurn() {
 		->p.alive=false;
 	}
 	*/
-	//}
-
+	//checkWinCondition();
 }
