@@ -1,4 +1,4 @@
-
+#pragma once
 #include <stdio.h>
 #include <vector>
 #include <string>
@@ -6,36 +6,43 @@
 #include "Roles/werewolves.cpp"
 #include"narrator.cpp"
 class Game {
+	public:
 	int werwolveCount;
 	std::vector<Player> alivePlayers;
-	std::vector<std::string> villagers;
-	std::vector<std::string> werewolves;
+	std::vector<Villager> villagers;
+	std::vector<Werewolve> werewolves;
 	//std::vector<std::string> seeers;
 	//std::vector<std::string> witches;
 	//std::vector<std::string> deadPlayers;
+
+	bool checkWinCondition(){
+
+	}
 };
 class Player {
-public:
-	std::string name;
-	bool alive = true;
-	int voteCounter;
-	//bool isMayor;
-	Game currentGame;
+	public:
+		std::string name;
+		bool alive = true;
+		int voteCounter;
+		//bool isMayor;
+		Game currentGame;
 
-	void voteExecution();
+		void voteExecution();
 };
-void turnNight() {
+void turnNight(Game g) {
 	//Narrator.startRound();
 	//night{
-	/*for( all Players){
-	if( p is werewolve){
-		w.showOtherWereWolves();
-		w.voteKill();
+	for(Player player: g.alivePlayers){
+	std::cout<< player.name <<" wacht auf."<<std::endl;
+	for(Werewolve w: g.werewolves){
+			if(w.name==player.name){
+			w.showOtherWereWolves(g.werewolves, player);
+			w.voteKill(g.villagers);
+			}
 		}
+		std::cout<<"Dein Zug ist vorbei"<<std::endl;
 	} 
-	//std::cout<<"Dein Zug ist vorbei"<<std::endl;
-	*/
-	//}
+	
 	//checkWinCondition();
 }
 
