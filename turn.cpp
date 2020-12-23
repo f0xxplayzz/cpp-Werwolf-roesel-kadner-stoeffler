@@ -5,6 +5,7 @@
 #include "Roles/villager.cpp"
 #include "Roles/werewolves.cpp"
 #include"narrator.cpp"
+#include <iostream>
 class Game {
 	public:
 	int werwolveCount;
@@ -26,7 +27,6 @@ class Player {
 		int voteCounter;
 		//bool isMayor;
 		Game currentGame;
-
 		void voteExecution();
 };
 void turnNight(Game g) {
@@ -37,7 +37,7 @@ void turnNight(Game g) {
 	for(Werewolve w: g.werewolves){
 			if(w.name==player.name){
 			w.showOtherWereWolves(g.werewolves, player);
-			w.voteKill(g.villagers);
+			g.villagers=w.voteKill(g.villagers);
 			}
 		}
 		std::cout<<"Dein Zug ist vorbei"<<std::endl;
