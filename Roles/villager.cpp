@@ -3,5 +3,5 @@
 #include "./../turn.cpp"
 
 class Villager : Player{
-	
+	std::string role = "Villager";
 };
