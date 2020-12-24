@@ -6,6 +6,17 @@
 #include "Roles/werewolves.cpp"
 #include"narrator.cpp"
 #include <iostream>
+class Player {
+	public:
+		std::string name;
+		std::string role = "";//Hilfsattribut, wird benï¿½tigt damit alle Unterklassen dies implementieren
+		bool alive = true;
+		int voteCounter;
+		//bool isMayor;
+		Game currentGame;
+		void voteExecution();
+};
+
 class Game {
 	public:
 	int werwolveCount;
@@ -19,18 +30,18 @@ class Game {
 
 	void checkWinCondition() {
 	/*
-		Author: Jan Stöffler
-		Description: Methode, welche überprüft ob ein Sieg erreicht ist
+		Author: Jan Stï¿½ffler
+		Description: Methode, welche ï¿½berprï¿½ft ob ein Sieg erreicht ist
 		Input: /
 		Output: /
 	*/
-		if (villagers.size = 0) {
-			//Gewinnbedingung für die Werwölfe: kein Dorfbewohner lebt mehr.
-			std::cout << "Die Werwöfe haben gewonnen!" << std::endl;
+		if (villagers.size() == 0) {
+			//Gewinnbedingung fï¿½r die Werwï¿½lfe: kein Dorfbewohner lebt mehr.
+			std::cout << "Die Werwï¿½fe haben gewonnen!" << std::endl;
 			gameOver = true;
 		}
-		if (werewolves.size = 0) {
-			//Gewinnbedingung für die Dorfbewohner: Alle Werwölfe sind tot.
+		if (werewolves.size() == 0) {
+			//Gewinnbedingung fï¿½r die Dorfbewohner: Alle Werwï¿½lfe sind tot.
 			std::cout << "Die Dorfbewohner haben gewonnen!" << std::endl;
 			gameOver = true;
 		}
@@ -38,9 +49,9 @@ class Game {
 
 	void executeWerewolveKill() {
 	/*
-		Author: Jan Stöffler
-		Description: Methode, welche die Person tötet, die von den meisten Werwölfen gewählt wurde. Bei Gleichstand der Stimmen wird
-			die zuerst im Vector genannte Person getötet.
+		Author: Jan Stï¿½ffler
+		Description: Methode, welche die Person tï¿½tet, die von den meisten Werwï¿½lfen gewï¿½hlt wurde. Bei Gleichstand der Stimmen wird
+			die zuerst im Vector genannte Person getï¿½tet.
 		Input: /
 		Output: /
 	*/
@@ -53,22 +64,13 @@ class Game {
 			}
 			villagers[i].voteCounter = 0;
 		}
-		villagers.erase(i);//löscht meist gevoteten Spieler aus dem vector Villagers
+		villagers.erase(villagers.begin()+mostVoted);//lï¿½scht meist gevoteten Spieler aus dem vector Villagers
 	}
 };
-class Player {
-	public:
-		std::string name;
-		std::string role = "";//Hilfsattribut, wird benötigt damit alle Unterklassen dies implementieren
-		bool alive = true;
-		int voteCounter;
-		//bool isMayor;
-		Game currentGame;
-		void voteExecution();
-};
+
 void turnNight(Game g) {
 /*
-	Author: Jan Stöffler
+	Author: Jan Stï¿½ffler
 	Description: Methode, welche einen Nachtzyklus darstellt
 	Input: Game g
 	Output: /
@@ -79,8 +81,8 @@ void turnNight(Game g) {
 	std::cout<< player.name <<" wacht auf."<<std::endl;
 	for(Werewolve w: g.werewolves){
 			if(w.name==player.name){
-			w.showOtherWereWolves(g.werewolves, player);
-			g.villagers=w.voteKill(g.villagers);
+			w.showOtherWerewolves(g.werewolves, &player);
+			w.voteKill(g.villagers);
 			}
 		}
 		std::cout<<"Dein Zug ist vorbei"<<std::endl;

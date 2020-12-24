@@ -2,6 +2,6 @@
 #include <stdio.h>
 #include "./../turn.cpp"
 
-class Villager : Player{
+class Villager : public Player{
 	std::string role = "Villager";
 };
