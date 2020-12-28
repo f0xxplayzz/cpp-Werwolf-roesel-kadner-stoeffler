@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <stdio.h>
-#include "./../turn.cpp"
+#include "player.cpp"
 
 class Werewolve : public Player {
 public:

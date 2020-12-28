@@ -6,20 +6,10 @@
 #include "Roles/werewolves.cpp"
 #include"narrator.cpp"
 #include <iostream>
-class Player {
-	public:
-		std::string name;
-		std::string role = "";//Hilfsattribut, wird ben�tigt damit alle Unterklassen dies implementieren
-		bool alive = true;
-		int voteCounter;
-		//bool isMayor;
-		Game currentGame;
-		void voteExecution();
-};
 
 class Game {
 	public:
-	int werwolveCount;
+	int werewolveCount;
 	bool gameOver = false;
 	std::vector<Player> alivePlayers;
 	std::vector<Villager> villagers;

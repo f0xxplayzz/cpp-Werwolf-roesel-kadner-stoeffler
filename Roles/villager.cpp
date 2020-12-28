@@ -1,6 +1,6 @@
 #pragma once
 #include <stdio.h>
-#include "./../turn.cpp"
+#include "player.cpp"
 
 class Villager : public Player{
 	std::string role = "Villager";
