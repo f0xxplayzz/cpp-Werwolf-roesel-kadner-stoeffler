@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include <stdio.h>
 #include "player.cpp"
+#include "villager.cpp"
 
 class Werewolve : public Player {
 public:
