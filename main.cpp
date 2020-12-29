@@ -117,7 +117,6 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 	return outputGame;
 	
 }
-
 int main()
 {
 	//Game* mainGame = roleDeployment(playerCount);
