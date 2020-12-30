@@ -11,4 +11,13 @@ class Player {
 		//bool isMayor;
 		//Game currentGame;
 		void voteExecution();
+		std::string toString(){
+			std::string temp = "";
+			temp += name;
+			temp += '?';
+			char c = voteCounter;
+			temp += c;
+
+			return temp; 
+		}
 };

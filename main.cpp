@@ -9,7 +9,7 @@
 #include "./Roles/villager.cpp"
 
 void createWerewolf (std::shared_ptr<Game> game) {
-	std::shared_ptr<Werewolve> outputWerewolve = std::make_shared<Werewolve>();
+	std::shared_ptr<Werewolves::Werewolve> outputWerewolve = std::make_shared<Werewolves::Werewolve>();
 	//Werewolve *outputWerewolve = new Werewolve;
 	std::shared_ptr<Player> outputPlayer = std::make_shared<Player>();
 	//Player *outputPlayer = new Player;

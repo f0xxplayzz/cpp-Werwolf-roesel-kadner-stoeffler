@@ -1,16 +1,7 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <stdio.h>
-#include "player.cpp"
-#include "villager.cpp"
+#include "werewolves.hpp"
 
-class Werewolve : public Player {
-public:
-	std::string role = "Werewolve";
-
-
-	void voteKill(std::vector<Villager> villagers){
+void Werewolves::Werewolve::voteKill(std::vector<Villager> villagers){
 		std::cout << "Folgende Leute kannst du töten:" << std::endl;
 		int iterator = 1;
 		for (int i = 0; i < villagers.size();i++) {
@@ -22,9 +13,9 @@ public:
 		std::cin >> vote;
 		} while (vote > 0 && vote <= villagers.size());
 		villagers[vote - 1].voteCounter++;
-	}
+}
 
-	void showOtherWerewolves(std::vector<Werewolve> werewolves, Player* p){
+void Werewolves::Werewolve::showOtherWerewolves(std::vector<Werewolves::Werewolve> werewolves, Player* p){
 		std::cout<<"Die anderen Werwölfe sind: ";
 		for(Werewolve w : werewolves){
 			if(!(p->name==w.name)){
@@ -32,5 +23,4 @@ public:
 			}
 		}
 		std::cout<<std::endl;
-	}
-};
+}

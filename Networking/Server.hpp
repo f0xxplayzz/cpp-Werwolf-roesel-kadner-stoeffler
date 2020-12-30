@@ -22,6 +22,4 @@ class Connection{
     }
 };
 void host();
-Game processPlayerInfo(Connection c);
-void sendGameInfo(Connection c);
 }

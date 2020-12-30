@@ -13,7 +13,7 @@ class Game {
 	bool gameOver = false;
 	std::vector<Player> alivePlayers;
 	std::vector<Villager> villagers;
-	std::vector<Werewolve> werewolves;
+	std::vector<Werewolves::Werewolve> werewolves;
 	//std::vector<std::string> seeers;
 	//std::vector<std::string> witches;
 	//std::vector<std::string> deadPlayers;
@@ -69,7 +69,7 @@ void turnNight(Game g) {
 	//night{
 	for(Player player: g.alivePlayers){
 	std::cout<< player.name <<" wacht auf."<<std::endl;
-	for(Werewolve w: g.werewolves){
+	for(Werewolves::Werewolve w: g.werewolves){
 			if(w.name==player.name){
 			w.showOtherWerewolves(g.werewolves, &player);
 			w.voteKill(g.villagers);
