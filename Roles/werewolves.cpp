@@ -11,7 +11,7 @@ void Werewolves::Werewolve::voteKill(std::vector<Villager> villagers){
 		int vote = 0;
 		do {
 		std::cin >> vote;
-		} while (vote > 0 && vote <= villagers.size());
+		} while (!(vote > 0) && !(vote <= villagers.size()));
 		villagers[vote - 1].voteCounter++;
 }
 

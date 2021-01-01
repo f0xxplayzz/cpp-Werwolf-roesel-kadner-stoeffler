@@ -11,9 +11,8 @@
 using tcp = boost::asio::ip::tcp;
 using error_code_t = boost::system::error_code;
 
- void WerewolveServer::host(){
+ void WerewolveServer::Server::host(Game* hostData){
 
-    Game hostData;
     boost::asio::io_service my_service;
 
     tcp::endpoint endpoint{tcp::v4(),8999};
@@ -37,7 +36,7 @@ using error_code_t = boost::system::error_code;
                     char* bufferAsString = connection->buf;
                     switch(bufferAsString[0]){
                         case 0:
-                            hostData = Network::processPlayerInfo(connection);
+                            hostData = &Network::processPlayerInfo(connection);
                         case 1:
                             //sendGameInfo(connection);
                             break;
@@ -49,8 +48,9 @@ using error_code_t = boost::system::error_code;
                             break;
                     }
                 });
+            my_acceptor.listen();
         }
-        my_acceptor.listen();
+        my_acceptor.accept();
     });
 
     auto func =[&my_service](){my_service.run();};

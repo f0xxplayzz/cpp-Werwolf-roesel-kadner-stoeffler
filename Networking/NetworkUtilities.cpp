@@ -48,7 +48,7 @@ std::vector<Player> Network::processAlivePlayers(char* c){
             comp = c[iterator];
         }
         tempPlayer->name=temp;
-        tempPlayer->role="";
+        tempPlayer->role;
         tempPlayer->alive=true;
         tempPlayer->voteCounter=c[iterator++];
         alives.push_back(*tempPlayer);
@@ -93,24 +93,4 @@ std::vector<Werewolves::Werewolve> Network::processWerewolves(char* c){
         werewolves.push_back(*tempPlayer);
     }while(c[++iterator] != '\0');
     return werewolves;
-}
-std::string Network::gameToString(WerewolveServer::Connection c){
-    std::string temp = "";
-    temp += (char)c.hostData.werewolveCount;
-    temp += (char)c.hostData.gameOver;
-    std::string temp2 ="";
-    for(Player p : c.hostData.alivePlayers){
-        temp2 += p.toString();
-    }
-    temp += temp2;
-    temp2 = "";
-    for(Villager v : c.hostData.villagers){
-        temp2 += v.toString();
-    } 
-    temp += temp2;
-    temp2 = "";
-    for(Werewolves::Werewolve w : c.hostData.werewolves){
-        temp2 += w.toString();
-    } 
-    temp += temp2;
 }

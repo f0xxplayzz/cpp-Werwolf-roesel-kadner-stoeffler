@@ -5,7 +5,7 @@
 class Player {
 	public:
 		std::string name;
-		std::string role = "";//Hilfsattribut, wird ben�tigt damit alle Unterklassen dies implementieren
+		char role ;//Hilfsattribut, wird ben�tigt damit alle Unterklassen dies implementieren
 		bool alive = true;
 		int voteCounter;
 		//bool isMayor;

@@ -9,7 +9,6 @@ class Werewolve : public Player {
 public:
 	std::string role = "Werewolve";
 
-
 	void voteKill(std::vector<Villager> villagers);
 
 	void showOtherWerewolves(std::vector<Werewolve> werewolves, Player* p);
