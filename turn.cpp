@@ -60,23 +60,26 @@ class Game {
 	}
 	std::string toString(){
 		std::string temp = "";
-    temp += (char)werewolveCount;
-    temp += (char)gameOver;
-    std::string temp2 ="";
-    for(Player p :alivePlayers){
-        temp2 += p.toString();
-    }
-    temp += temp2;
-    temp2 = "";
-    for(Villager v : villagers){
-        temp2 += v.toString();
-    } 
-    temp += temp2;
-    temp2 = "";
-    for(Werewolves::Werewolve w : werewolves){
-        temp2 += w.toString();
-    } 
-    temp += temp2;
+		temp += (char)werewolveCount;
+		temp += (char)gameOver;
+		std::string temp2 ="";
+			for(Player p :alivePlayers)
+			{
+				temp2 += p.toString();
+			}
+		temp += temp2;
+		temp2 = "";
+			for(Villager v : villagers)
+			{
+				temp2 += v.toString();
+			} 
+		temp += temp2;
+		temp2 = "";
+			for(Werewolves::Werewolve w : werewolves)
+			{
+				temp2 += w.toString();
+			} 
+		temp += temp2;
 	}
 };
 

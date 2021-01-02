@@ -34,21 +34,46 @@ using error_code_t = boost::system::error_code;
                 [connection,&hostData](error_code_t &ec)
                 {
                     char* bufferAsString = connection->buf;
+                    std::string bufferString = bufferAsString;
                     switch(bufferAsString[0]){
-                        case 0:
-                            hostData = &Network::processPlayerInfo(connection);
                         case 1:
-                            //sendGameInfo(connection);
+                            //join
+                            Player *p = new Player();
+                            p->alive =true;
+                            p->id = bufferAsString[1];
+                            p->role = bufferAsString[2];
+                            p->name = bufferString.substr(3,10);
+                            hostData->alivePlayers.push_back(*p);
+                            boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString(),200),[connection](error_code_t err){});
                             break;
                         case 2:
-                            //voting
+                            //actionOfClient
                             break;
                         case 3:
-                            //werewolveKill
+                            boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString(),200),[connection](error_code_t err){});
+                            break;
+                        case 4:
+                            //ChatMessage
+                            //not implemented yet
+                            break;
+                        case 5:
+                            //voting
+                            for(Player p: hostData->alivePlayers){
+                                if(p.id==bufferAsString[1])
+                                    p.voteCounter++;
+                            }
+                            boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString(),200),[connection](error_code_t err){});
+                            break;
+                        case 6:
+                            //werewolveVoting
+                            for(Player p: hostData->alivePlayers){
+                                if(p.id==bufferAsString[1])
+                                    p.voteCounter++;
+                            }
+                            boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString(),200),[connection](error_code_t err){});
                             break;
                     }
                 });
-            my_acceptor.listen();
         }
         my_acceptor.accept();
     });

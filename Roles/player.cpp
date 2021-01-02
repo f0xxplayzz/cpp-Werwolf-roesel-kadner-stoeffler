@@ -4,8 +4,13 @@
 
 class Player {
 	public:
+		char id;
 		std::string name;
 		char role ;//Hilfsattribut, wird ben�tigt damit alle Unterklassen dies implementieren
+		/*
+			1:Villager
+			2:Werewolve
+		*/
 		bool alive = true;
 		int voteCounter;
 		//bool isMayor;

@@ -1,8 +1,8 @@
 #pragma once
 #include "Networking.hpp"
 
-Game Network::processPlayerInfo(std::shared_ptr<WerewolveServer::Connection> c){
-    char* data = c->buf;
+Game Network::processPlayerInfo(std::string input){
+    const char* data = input.c_str();
     char* alivePlayers;
     char* villagers;
     char* werewolves;

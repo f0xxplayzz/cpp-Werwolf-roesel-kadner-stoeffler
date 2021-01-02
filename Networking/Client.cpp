@@ -1,50 +1,70 @@
 #include "Networking.hpp"
 #include "Client.hpp"
+#include "Networking.hpp"
+#include <streambuf.hpp>
 
 using boost::asio::ip::tcp;
 
 void werewolveClient::Client::setSocket(){
     socket = tcp::socket(my_service);
 }
-void werewolveClient::Client::openConnection(char cases){
+
+void werewolveClient::Client::join(){
     socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
-    boost::asio::write(socket,boost::asio::buffer(""),err);
-    if(!err){
-        std::string message;
-        switch(cases){
-            case 1:
-                //join
-                message = createJoinMessage();
-                break;  
-            case 2:
-                //action / sendData
-                message = createActionMessage(1);//<- Platzhalter
-                break;
-            case 3:
-    	        //requestData
-            case 4:
-                //ChatMessage
-                message = createChatMessage("");
-                break;
-            case 5:
-                //voting
-                message = createVotingMessage(1);
-                break;
-            case 6:
-                //WerewolveVoting
-                message = createWerewolveVotingMessage(1);
-                break;
+    boost::asio::async_write(socket,boost::asio::buffer(createJoinMessage(),200),err,[](boost::system::error_code err){
+        if(!err){
+            std::cout<<"Joined Server"<<std::endl;
         }
-    }
-    else{
-        //errorhandling
-    }
-    boost::asio::streambuf receiver;
-    boost::asio::read(socket,receiver,boost::asio::transfer_all(),err);
-    if(err && err != boost::asio::error::eof){
-        //errorhandling
-    }
-    else{
-        //handling
-    }
+    });
+    auto receiver = new char[200];
+    socket.receive(receiver);
+    clientData=Network::processPlayerInfo(receiver);
+}
+
+void werewolveClient::Client::action(char id, char ca){
+    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
+    boost::asio::async_write(socket,boost::asio::buffer(createActionMessage(id,ca),200),err,[](boost::system::error_code err){
+        if(!err){
+            std::cout<<"Sended action informations"<<std::endl;
+        }
+    });
+    auto receiver = new char[200];
+    socket.receive(receiver);
+    clientData=Network::processPlayerInfo(receiver);
+}
+
+void werewolveClient::Client::chatMessage(std::string msg){
+    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
+    boost::asio::async_write(socket,boost::asio::buffer(createChatMessage(msg),200),err,[](boost::system::error_code err){
+        if(!err){
+            std::cout<<"Sended Chat Msg"<<std::endl;
+        }
+    });
+    auto receiver = boost::asio::buffer("",200);
+    socket.receive(receiver);
+    //receiver -> Chat
+}
+
+void werewolveClient::Client::voting(char id){
+    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
+    boost::asio::async_write(socket,boost::asio::buffer(createVotingMessage(id),200),err,[](boost::system::error_code err){
+        if(!err){
+            std::cout<<"Voted"<<std::endl;
+        }
+    });
+    auto receiver = new char[200];
+    socket.receive(receiver);
+    clientData=Network::processPlayerInfo(receiver);
+}
+
+void werewolveClient::Client::werewolveVoting(char id){
+    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
+    boost::asio::async_write(socket,boost::asio::buffer(createWerewolveVotingMessage(id),200),err,[](boost::system::error_code err){
+        if(!err){
+            std::cout<<"voted"<<std::endl;
+        }
+    });
+    auto receiver = new char[200];
+    socket.receive(receiver);
+    clientData=Network::processPlayerInfo(receiver);
 }

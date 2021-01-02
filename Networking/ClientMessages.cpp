@@ -17,7 +17,7 @@ result += getName();
 return result;
 }
 
-std::string werewolveClient::Client::createActionMessage(char id){
+std::string werewolveClient::Client::createActionMessage(char id, char ca){
 std::string result ="";
 /*
     Value(Index = 0) = 2
