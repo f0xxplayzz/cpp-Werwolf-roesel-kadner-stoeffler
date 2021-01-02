@@ -13,10 +13,11 @@ class Game {
 	bool gameOver = false;
 	std::vector<Player> alivePlayers;
 	std::vector<Villager> villagers;
-	std::vector<Werewolve> werewolves;
+	std::vector<Werewolves::Werewolve> werewolves;
 	//std::vector<std::string> seeers;
 	//std::vector<std::string> witches;
 	//std::vector<std::string> deadPlayers;
+	std::vector<std::string> diedThisCycle;
 
 	void checkWinCondition() {
 	/*
@@ -25,16 +26,17 @@ class Game {
 		Input: /
 		Output: /
 	*/
-		if (villagers.size() == 0) {
+		if (villagers.size() == werewolves.size()) {
 			//Gewinnbedingung f�r die Werw�lfe: kein Dorfbewohner lebt mehr.
 			std::cout << "Die Werw�fe haben gewonnen!" << std::endl;
 			gameOver = true;
 		}
-		if (werewolves.size() == 0) {
+		if (werewolves.size() == 0  && villagers.size()!=0) {
 			//Gewinnbedingung f�r die Dorfbewohner: Alle Werw�lfe sind tot.
 			std::cout << "Die Dorfbewohner haben gewonnen!" << std::endl;
 			gameOver = true;
 		}
+		//Narrator win, toDO
 	}
 
 	void executeWerewolveKill() {
@@ -56,6 +58,29 @@ class Game {
 		}
 		villagers.erase(villagers.begin()+mostVoted);//l�scht meist gevoteten Spieler aus dem vector Villagers
 	}
+	std::string toString(){
+		std::string temp = "";
+		temp += (char)werewolveCount;
+		temp += (char)gameOver;
+		std::string temp2 ="";
+			for(Player p :alivePlayers)
+			{
+				temp2 += p.toString();
+			}
+		temp += temp2;
+		temp2 = "";
+			for(Villager v : villagers)
+			{
+				temp2 += v.toString();
+			} 
+		temp += temp2;
+		temp2 = "";
+			for(Werewolves::Werewolve w : werewolves)
+			{
+				temp2 += w.toString();
+			} 
+		temp += temp2;
+	}
 };
 
 void turnNight(Game g) {
@@ -69,13 +94,14 @@ void turnNight(Game g) {
 	//night{
 	for(Player player: g.alivePlayers){
 	std::cout<< player.name <<" wacht auf."<<std::endl;
-	for(Werewolve w: g.werewolves){
+	//input
+		for(Werewolves::Werewolve w: g.werewolves){
 			if(w.name==player.name){
-			w.showOtherWerewolves(g.werewolves, &player);
-			w.voteKill(g.villagers);
+				w.showOtherWerewolves(g.werewolves, &player);
+				w.voteKill(g.villagers);
 			}
 		}
-		std::cout<<"Dein Zug ist vorbei"<<std::endl;
+	std::cout<<"Dein Zug ist vorbei"<<std::endl;
 	} 
 	
 	g.checkWinCondition();
