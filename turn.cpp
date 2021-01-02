@@ -2,18 +2,17 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
-#include "Roles/villager.cpp"
-#include "Roles/werewolves.cpp"
 #include"narrator.cpp"
 #include <iostream>
+#include "Roles/player.cpp"
 
 class Game {
 	public:
 	int werewolveCount;
 	bool gameOver = false;
 	std::vector<Player> alivePlayers;
-	std::vector<Villager> villagers;
-	std::vector<Werewolves::Werewolve> werewolves;
+	std::vector<Player> villagers;
+	std::vector<Player> werewolves;
 	//std::vector<std::string> seeers;
 	//std::vector<std::string> witches;
 	//std::vector<std::string> deadPlayers;
@@ -69,13 +68,13 @@ class Game {
 			}
 		temp += temp2;
 		temp2 = "";
-			for(Villager v : villagers)
+			for(Player v : villagers)
 			{
 				temp2 += v.toString();
 			} 
 		temp += temp2;
 		temp2 = "";
-			for(Werewolves::Werewolve w : werewolves)
+			for(Player w : werewolves)
 			{
 				temp2 += w.toString();
 			} 
@@ -95,7 +94,7 @@ void turnNight(Game g) {
 	for(Player player: g.alivePlayers){
 	std::cout<< player.name <<" wacht auf."<<std::endl;
 	//input
-		for(Werewolves::Werewolve w: g.werewolves){
+		for(Player w: g.werewolves){
 			if(w.name==player.name){
 				w.showOtherWerewolves(g.werewolves, &player);
 				w.voteKill(g.villagers);

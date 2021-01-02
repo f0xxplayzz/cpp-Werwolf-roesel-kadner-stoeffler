@@ -5,8 +5,6 @@
 #include "string.h"
 #include <memory>
 #include "CppRandom.hpp"
-#include "./Roles/werewolves.cpp"
-#include "./Roles/villager.cpp"
 
 void createWerewolf (std::shared_ptr<Game> game) {
 	std::shared_ptr<Werewolves::Werewolve> outputWerewolve = std::make_shared<Werewolves::Werewolve>();

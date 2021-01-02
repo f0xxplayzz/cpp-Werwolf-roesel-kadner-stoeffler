@@ -1,4 +1,4 @@
-#pragma once
+
 #include "Networking.hpp"
 
 Game Network::processPlayerInfo(std::string input){
@@ -48,18 +48,18 @@ std::vector<Player> Network::processAlivePlayers(char* c){
             comp = c[iterator];
         }
         tempPlayer->name=temp;
-        tempPlayer->role;
+        tempPlayer->role;//????
         tempPlayer->alive=true;
         tempPlayer->voteCounter=c[iterator++];
         alives.push_back(*tempPlayer);
     }while(c[++iterator] != '\0');
     return alives;
 }
-std::vector<Villager> Network::processVillagers(char* c){
+std::vector<Player> Network::processVillagers(char* c){
     int iterator = 0;
-    std::vector<Villager> villagers;
+    std::vector<Player> villagers;
     do{
-        Villager * tempPlayer= new Villager;
+        Player * tempPlayer= new Player;
         char comp = 'a';
         std::string temp = "";
         while(comp!='?')
@@ -68,17 +68,18 @@ std::vector<Villager> Network::processVillagers(char* c){
             comp = c[iterator];
         }
         tempPlayer->name=temp;
+        tempPlayer->role=1;
         tempPlayer->alive=true;
         tempPlayer->voteCounter=c[iterator++];
         villagers.push_back(*tempPlayer);
     }while(c[++iterator] != '\0');
     return villagers;
 }
-std::vector<Werewolves::Werewolve> Network::processWerewolves(char* c){
+std::vector<Player> Network::processWerewolves(char* c){
     int iterator = 0;
-    std::vector<Werewolves::Werewolve> werewolves;
+    std::vector<Player> werewolves;
     do{
-        Werewolves::Werewolve * tempPlayer= new Werewolves::Werewolve;
+        Player * tempPlayer= new Player;
         char comp = 'a';
         std::string temp = "";
         while(comp!='?')
@@ -87,7 +88,7 @@ std::vector<Werewolves::Werewolve> Network::processWerewolves(char* c){
             comp = c[iterator];
         }
         tempPlayer->name=temp;
-        tempPlayer->role="";
+        tempPlayer->role= 2;
         tempPlayer->alive=true;
         tempPlayer->voteCounter=c[iterator++];
         werewolves.push_back(*tempPlayer);
