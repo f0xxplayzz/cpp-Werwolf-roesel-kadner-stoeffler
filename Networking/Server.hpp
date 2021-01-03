@@ -19,8 +19,9 @@ class Connection{
 class Server{
     public:
     Game* hostData;
-    std::vector<werewolveClient::Client> clients;
-    void broadcast(std::string);
+    char idCounter=0;
+    char phase;
+    char phaseCounter;
     void host(Game* hostData);
 };
 }

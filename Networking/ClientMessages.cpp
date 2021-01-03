@@ -11,13 +11,13 @@ std::string result ="";
     index = 3-12 -> Name 
 */
 result += (char)1;
-result += id;
+//result += id;
 result += getRole();
 result += getName();
 return result;
 }
 
-std::string werewolveClient::Client::createActionMessage(char id, char ca){
+std::string werewolveClient::Client::createActionMessage(char idp, char ca){
 std::string result ="";
 /*
     Value(Index = 0) = 2
@@ -26,43 +26,47 @@ std::string result ="";
     index = 3 -> ID of Target
 */
 result += (char)2;
-result += getRole();
-//result +=case;
 result += id;
+result += idp;
+result += getRole();
+result += ca; //important for witch
 return result;
 }
 
 std::string werewolveClient::Client::createChatMessage(std::string msg){
 std::string result ="";
 /*
-    Value(Index = 0) = 3
+    Value(Index = 0) = 4
     Index = 1 -> alive/dead
     Index = 2-... -> Message 
 */
-result += (char)3;
+result += (char)4;
+result += id;
 result += getLivingStatus();
 result += msg;
 return result;
 }
 
-std::string werewolveClient::Client::createVotingMessage(char id){
+std::string werewolveClient::Client::createVotingMessage(char idp){
 std::string result ="";
 /*
-    Value(Index=0) = 4
+    Value(Index=0) = 5
     Index = 1 -> ID of target
-*/
-result += (char)4;
-result += id;
-return result;
-}
-
-std::string werewolveClient::Client::createWerewolveVotingMessage(char id){
-std::string result ="";
-/*
-    Value(Index =0) = 5
-    Index=1 -> target ID
 */
 result += (char)5;
 result += id;
+result += idp;
+return result;
+}
+
+std::string werewolveClient::Client::createWerewolveVotingMessage(char idp){
+std::string result ="";
+/*
+    Value(Index =0) = 6
+    Index=1 -> target ID
+*/
+result += (char)6;
+result += id;
+result += idp;
 return result;
 }

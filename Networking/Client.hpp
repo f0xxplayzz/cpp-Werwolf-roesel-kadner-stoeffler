@@ -20,6 +20,9 @@ namespace werewolveClient{
         void chatMessage(std::string msg);
         void voting(char id);
         void werewolveVoting(char id);
+        void openConnection();
+        void closeConnection();
+        Game processPlayerInfoOnJoin(std::string);
 
         //ClientMessages.cpp
         std::string createJoinMessage();

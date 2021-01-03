@@ -24,14 +24,14 @@ using error_code_t = boost::system::error_code;
 
     auto connection =std::make_shared<WerewolveServer::Connection>(my_service);
 
-    my_acceptor.async_accept(connection->m_sock,[connection,&my_acceptor,&hostData](const error_code_t &ec)
+    my_acceptor.async_accept(connection->m_sock,[connection,&my_acceptor,&hostData,this](const error_code_t &ec)
     {
         if(!ec)
         {
             auto boostBuffer = boost::asio::buffer(connection->buf,200);
 
             boost::asio::async_read(connection->m_sock,boostBuffer,
-                [connection,&hostData](error_code_t &ec)
+                [connection,&hostData,this](error_code_t &ec)
                 {
                     char* bufferAsString = connection->buf;
                     std::string bufferString = bufferAsString;
@@ -44,12 +44,29 @@ using error_code_t = boost::system::error_code;
                             p->role = bufferAsString[2];
                             p->name = bufferString.substr(3,10);
                             hostData->alivePlayers.push_back(*p);
-                            boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString(),200),[connection](error_code_t err){});
+                            boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString() + idCounter++,200),[connection](error_code_t err){});
                             break;
                         case 2:
                             //actionOfClient
+                            for(Player p : hostData->alivePlayers){
+                                if(p.id==bufferAsString[1]){
+                                    switch(bufferAsString[3]){
+                                        case 1:
+                                            //Villager
+                                            break;
+                                        case 2:
+                                            //Werewolve
+                                            for(Player target : hostData->alivePlayers){
+                                                if(target.id == bufferAsString[2])
+                                                    target.voteCounter++;
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
                             break;
                         case 3:
+                            //requestData
                             boost::asio::async_write(connection->m_sock,boost::asio::buffer(hostData->toString(),200),[connection](error_code_t err){});
                             break;
                         case 4:
@@ -74,6 +91,7 @@ using error_code_t = boost::system::error_code;
                             break;
                     }
                 });
+            my_acceptor.listen();
         }
         my_acceptor.accept();
     });
@@ -82,5 +100,3 @@ using error_code_t = boost::system::error_code;
     std::thread t(func);
     t.join();
 }
-
-
