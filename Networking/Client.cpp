@@ -64,12 +64,30 @@ void werewolveClient::Client::werewolveVoting(char id){
     clientData=Network::processPlayerInfo(receiver);
 }
 
+void werewolveClient::Client::requestData(){
+    boost::asio::async_write(socket,boost::asio::buffer(createDataRequest(),200),err,[](boost::system::error_code err){
+        if(!err){
+            std::cout<<"requested Data"<<std::endl;
+        }
+    });
+    auto receiver = new char[200];
+    socket.receive(receiver);
+    clientData=Network::processPlayerInfo(receiver);
+}
+
 void werewolveClient::Client::openConnection(){
     socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
 }
 
 void werewolveClient::Client::closeConnection(){
     socket.close();
+}
+
+void werewolveClient::Client::getPlayerData(){
+    for(Player p : clientData.alivePlayers){
+        if(p.id == id)
+            player = &p;
+    }
 }
 
 Game werewolveClient::Client::processPlayerInfoOnJoin(std::string input){

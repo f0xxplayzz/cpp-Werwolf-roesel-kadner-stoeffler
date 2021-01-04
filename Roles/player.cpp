@@ -51,4 +51,19 @@ class Player {
 			villagers[vote - 1].voteCounter++;
 		}
 	}
+	int voteKill_network(std::vector<Player> villagers){
+		if(role==2){
+			std::cout << "Folgende Leute kannst du töten:" << std::endl;
+			int iterator = 1;
+			for (int i = 0; i < villagers.size();i++) {
+				std::cout << iterator << ".) " << villagers[i].name << std::endl;
+			}
+			std::cout << "Wen willst du töten? ";
+			int vote = 0;
+			do {
+			std::cin >> vote;
+			} while (!(vote > 0) && !(vote <= villagers.size()));
+			return villagers[vote - 1].id;
+		}
+	}
 };

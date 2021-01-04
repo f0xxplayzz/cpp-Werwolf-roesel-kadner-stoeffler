@@ -70,3 +70,9 @@ result += id;
 result += idp;
 return result;
 }
+
+std::string werewolveClient::Client::createDataRequest(){
+    std::string result = "";
+    result += (char)3;
+    return result;
+}

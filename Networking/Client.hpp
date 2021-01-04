@@ -6,11 +6,19 @@
 using boost::asio::ip::tcp;
 namespace werewolveClient{
     class Client{
+        public:
         char id; //ID of the player-object
+        char phase;
+        char role;
         Game clientData;
+        Player* player;
         boost::asio::io_service my_service;
         tcp::socket socket;
         boost::system::error_code err;
+
+        Client(){
+            socket = tcp::socket(my_service);
+        };
         
         //Client.cpp
         void setSocket();
@@ -22,6 +30,8 @@ namespace werewolveClient{
         void werewolveVoting(char id);
         void openConnection();
         void closeConnection();
+        void requestData();
+        void getPlayerData();
         Game processPlayerInfoOnJoin(std::string);
 
         //ClientMessages.cpp
@@ -30,6 +40,7 @@ namespace werewolveClient{
         std::string createChatMessage(std::string msg);
         std::string createVotingMessage(char id);
         std::string createWerewolveVotingMessage(char id);
+        std::string createDataRequest();
 
         //ClientUtilities.cpp
         char getRole();

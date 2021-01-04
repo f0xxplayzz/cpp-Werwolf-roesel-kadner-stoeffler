@@ -13,7 +13,7 @@
 
 void serverMain(int join){
     WerewolveServer::Server* server = new WerewolveServer::Server();
-    std::thread hostingThread(server->host());
+    std::thread hostingThread(WerewolveServer::Server::host,server->hostData);
     server->phase = JOINING;
     while(server->phaseCounter < join){
         std::cout << "Warte auf Mitspieler..." << std::endl;
