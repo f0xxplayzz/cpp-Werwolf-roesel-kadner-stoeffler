@@ -34,6 +34,7 @@ void clientMain(){
             /*
 
             */
+           client->voting();
         }
         Sleep(1000);
     }

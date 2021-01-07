@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 #include <boost/asio.hpp>
 #include  "./../turn.cpp"
 
@@ -25,3 +25,4 @@ class Server{
     void host(Game* hostData);
 };
 }
+*/

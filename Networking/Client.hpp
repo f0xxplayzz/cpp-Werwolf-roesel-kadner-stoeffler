@@ -10,25 +10,27 @@ namespace werewolveClient{
         char id; //ID of the player-object
         char phase;
         char role;
+        std::vector<char> choices;
+        int choiceCount;
         Game clientData;
-        Player* player;
+        //Player* player;
         boost::asio::io_service my_service;
-        tcp::socket socket;
+        tcp::socket* socket;
         boost::system::error_code err;
 
         Client(){
-            socket = tcp::socket(my_service);
+            tcp::socket temp(my_service);
+            socket = &temp;
         };
         
         //Client.cpp
-        void setSocket();
-        void openConnection(char cases);
+        //void setSocket();
+        void openConnection();
         void join();
         void action(char id, char ca);
         void chatMessage(std::string msg);
         void voting(char id);
         void werewolveVoting(char id);
-        void openConnection();
         void closeConnection();
         void requestData();
         void getPlayerData();

@@ -57,7 +57,7 @@ class Game {
 		}
 		villagers.erase(villagers.begin()+mostVoted);//l�scht meist gevoteten Spieler aus dem vector Villagers
 	}
-	std::string toString(){
+	/*std::string toString(){
 		std::string temp = "";
 		temp += (char)werewolveCount;
 		temp += (char)gameOver;
@@ -79,7 +79,7 @@ class Game {
 				temp2 += w.toString();
 			} 
 		temp += temp2;
-	}
+	}*/
 };
 
 void turnNight(Game g) {

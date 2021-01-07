@@ -1,13 +1,14 @@
 #include "Networking.hpp"
 #include "Client.hpp"
 #include "Networking.hpp"
-#include <streambuf.hpp>
 
 using boost::asio::ip::tcp;
 
+/*
 void werewolveClient::Client::setSocket(){
     socket = tcp::socket(my_service);
 }
+*/
 
 void werewolveClient::Client::join(){
     boost::asio::async_write(socket,boost::asio::buffer(createJoinMessage(),200),err,[](boost::system::error_code err){
@@ -16,7 +17,7 @@ void werewolveClient::Client::join(){
         }
     });
     auto receiver = new char[200];
-    socket.receive(receiver);
+    socket->receive(receiver);
     clientData=Network::processPlayerInfo(receiver);
 }
 
@@ -27,7 +28,7 @@ void werewolveClient::Client::action(char id, char ca){
         }
     });
     auto receiver = new char[200];
-    socket.receive(receiver);
+    socket->receive(receiver);
     clientData=Network::processPlayerInfo(receiver);
 }
 
@@ -38,7 +39,7 @@ void werewolveClient::Client::chatMessage(std::string msg){
         }
     });
     auto receiver = boost::asio::buffer("",200);
-    socket.receive(receiver);
+    socket->receive(receiver);
     //receiver -> Chat
 }
 
@@ -49,7 +50,7 @@ void werewolveClient::Client::voting(char id){
         }
     });
     auto receiver = new char[200];
-    socket.receive(receiver);
+    socket->receive(receiver);
     clientData=Network::processPlayerInfo(receiver);
 }
 
@@ -60,7 +61,7 @@ void werewolveClient::Client::werewolveVoting(char id){
         }
     });
     auto receiver = new char[200];
-    socket.receive(receiver);
+    socket->receive(receiver);
     clientData=Network::processPlayerInfo(receiver);
 }
 
@@ -70,20 +71,96 @@ void werewolveClient::Client::requestData(){
             std::cout<<"requested Data"<<std::endl;
         }
     });
-    auto receiver = new char[200];
-    socket.receive(receiver);
-    clientData=Network::processPlayerInfo(receiver);
+    auto receiver = new char[1];
+    socket->receive(receiver);
+    phase = receiver[0];
+    //remove later
+    std::cout<< (int)phase << std::endl;
 }
 
 void werewolveClient::Client::openConnection(){
-    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
+    socket->connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),8999));
 }
 
 void werewolveClient::Client::closeConnection(){
-    socket.close();
+    socket->close();
 }
 
-void werewolveClient::Client::getPlayerData(){
+std::string werewolveClient::Client::createJoinMessage(){
+std::string result ="";
+/*
+    Value(Index = 0) = 1
+    index = 1 -> ID
+    index = 2 -> Role
+    index = 3-12 -> Name 
+*/
+result += (char)1;
+//result += id;
+result += getRole();
+result += getName();
+return result;
+}
+
+std::string werewolveClient::Client::createActionMessage(char idp, char ca){
+std::string result ="";
+/*
+    Value(Index = 0) = 2
+    index = 1 -> Role 
+    index = 2 -> Case
+    index = 3 -> ID of Target
+*/
+result += (char)2;
+result += id;
+result += idp;
+result += getRole();
+result += ca; //important for witch
+return result;
+}
+
+std::string werewolveClient::Client::createChatMessage(std::string msg){
+std::string result ="";
+/*
+    Value(Index = 0) = 4
+    Index = 1 -> alive/dead
+    Index = 2-... -> Message 
+*/
+result += (char)4;
+result += id;
+result += getLivingStatus();
+result += msg;
+return result;
+}
+
+std::string werewolveClient::Client::createVotingMessage(char idp){
+std::string result ="";
+/*
+    Value(Index=0) = 5
+    Index = 1 -> ID of target
+*/
+result += (char)5;
+result += id;
+result += idp;
+return result;
+}
+
+std::string werewolveClient::Client::createWerewolveVotingMessage(char idp){
+std::string result ="";
+/*
+    Value(Index =0) = 6
+    Index=1 -> target ID
+*/
+result += (char)6;
+result += id;
+result += idp;
+return result;
+}
+
+std::string werewolveClient::Client::createDataRequest(){
+    std::string result = "";
+    result += (char)3;
+    return result;
+}
+/*void werewolveClient::Client::getPlayerData(){
     for(Player p : clientData.alivePlayers){
         if(p.id == id)
             player = &p;
@@ -125,3 +202,4 @@ Game werewolveClient::Client::processPlayerInfoOnJoin(std::string input){
     id=data[iterator];
     return newData;
 }
+*/
