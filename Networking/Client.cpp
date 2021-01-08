@@ -1,8 +1,25 @@
 #include "tcp_connection.hpp"
 class Client
 {
-    void start()
-    {
+    public:
+    void start();
+
+    private:
+    std::string createDataRequest();
+    void connect_handler();
+    void read_handler();
+    void write_handler();
+    void goSleeping();
+
+    char phase;
+    char id;
+    char role;
+    char name;
+    bool gameOver = false;
+}
+
+Client::start()
+{
         std::cout << "Starting Client" << std::endl;
         boost::asio::io_service io_service;
 
@@ -30,6 +47,7 @@ class Client
         };
 
         auto read_handler = [connection, write_handler](error_code_t e, size_t r) {
+            //überarbeiten
             if (!e)
             {
                 std::cout << "Content: " << connection->buf << std::endl;
@@ -57,5 +75,9 @@ class Client
         auto t = std::thread([&io_service]() { io_service.run(); });
         t.join();
         std::cout << "Closing Client" << std::endl;
-    }
+}
+
+void Client::goSleeping()
+{
+    std::this_thread::sleep_for(1000);
 }
