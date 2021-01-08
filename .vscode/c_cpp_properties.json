@@ -4,7 +4,7 @@
             "name": "Win64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/installation/path/include/boost-1_74/**"
+                "C:\\installation\\path\\include\\boost-1_75/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -14,7 +14,7 @@
             "windowsSdkVersion": "10.0.18362.0",
             "cStandard": "c17",
             "intelliSenseMode": "gcc-x86",
-            "compilerPath": "C:\\Qt\\Tools\\mingw810_64\\bin\\g++.exe",
+            "compilerPath": "C:/Qt/Tools/mingw810_64/bin/g++.exe",
             "cppStandard": "c++17",
             "compilerArgs": [
                 "-pthread",
