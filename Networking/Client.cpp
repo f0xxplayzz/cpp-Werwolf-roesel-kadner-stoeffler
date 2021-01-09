@@ -6,9 +6,7 @@ class Client
 
     private:
     std::string createDataRequest();
-    void connect_handler();
-    void read_handler();
-    void write_handler();
+    void listen_for_answer(std::shared_ptr<connection_t> con);
     void goSleeping();
 
     char phase;
@@ -18,8 +16,9 @@ class Client
     bool gameOver = false;
 }
 
-Client::start()
-{
+
+void Client::start()
+{   
         std::cout << "Starting Client" << std::endl;
         boost::asio::io_service io_service;
 
