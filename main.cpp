@@ -4,90 +4,85 @@
 #include "vector"
 #include "string.h"
 #include <memory>
-#include "CppRandom.hpp"
+#include "utils/CppRandom.hpp"
 
-void createWerewolf (std::shared_ptr<Game> game) {
-	std::shared_ptr<Werewolves::Werewolve> outputWerewolve = std::make_shared<Werewolves::Werewolve>();
-	//Werewolve *outputWerewolve = new Werewolve;
+bool nameAlreadyUsed (std::shared_ptr<Game> game, std::string name, bool output) {
+
+	output = false;
+
+	for (int i = 0; i < game->alivePlayers->size(); i++) {
+		if (name == game->alivePlayers->at(i)->name) {
+			output = true;
+		}
+	}
+	
+	return output;
+
+}
+
+std::shared_ptr<Player> createPlayer (std::shared_ptr<Game> game, int role) {
+
 	std::shared_ptr<Player> outputPlayer = std::make_shared<Player>();
-	//Player *outputPlayer = new Player;
 	std::string name = "";
 
-	std::cout << "Please enter a Name:";
-	std::cin >> name;
-
-	std::cout << "You are a Werewolve" << std::endl;
-	std::cout << "Good Luck " << name << "!" << std::endl;
-
-	outputWerewolve->name = name;
-	outputWerewolve->alive = true;
-	outputWerewolve->voteCounter = 0;
-	//outputWerewolve->currentGame = *game;
+	std::cout << "Please enter a Name: ";
+	do {
+		std::cin >> name;
+	} while (nameAlreadyUsed(game, name, true));
 
 	outputPlayer->name = name;
-	outputPlayer->role = "werewolve";
+	outputPlayer->role = role;
 	outputPlayer->alive = true;
 	outputPlayer->voteCounter = 0;
 	//outputPlayer->currentGame = *game;
 
-	game->alivePlayers.push_back(*outputPlayer);
-	game->werewolves.push_back(*outputWerewolve);
+	std::cout << "You are a " << outputPlayer->showRole() << std::endl;
+	std::cout << "Good Luck " << name << "!" << std::endl;
 
 	std::string nothing;
 	std::cout << std::endl << std::endl << "Do you know which role you are? (if yes, enter 'y' if not please read above)";
 	std::cin >> nothing;
 	system("clear");
+	return outputPlayer;
 }
 
-void createVillager (std::shared_ptr<Game> game) {
-	std::shared_ptr<Villager> outputVillager = std::make_shared<Villager>();
-	//Villager *outputVillager = new Villager;
-	std::shared_ptr<Player> outputPlayer = std::make_shared<Player>();
-	//Player *outputPlayer = new Player;
-	std::string name = "";
+std::shared_ptr<Player> createVillager (std::shared_ptr<Game> game) {
+	std::shared_ptr<Player> tmpPlayer = createPlayer(game, 1);
+	game->alivePlayers->push_back(tmpPlayer);
+	game->villagers->push_back(tmpPlayer);
+	return tmpPlayer;
+}
 
-	std::cout << "Please enter a Name:";
-	std::cin >> name;
+std::shared_ptr<Player> createWerewolf (std::shared_ptr<Game> game) {
+	std::shared_ptr<Player> tmpPlayer = createPlayer(game, 2);
+	game->alivePlayers->push_back(tmpPlayer);
+	game->werewolves->push_back(tmpPlayer);
+	return tmpPlayer;
+}
 
-	std::cout << "You are a Villager" << std::endl;
-	std::cout << "Good Luck " << name << "!" << std::endl;
-
-	outputVillager->name = name;
-	outputVillager->alive = true;
-	outputVillager->voteCounter = 0;
-	//outputVillager->currentGame = *game;
-
-	outputPlayer->name = name;
-	outputPlayer->role = "villager";
-	outputPlayer->alive = true;
-	outputPlayer->voteCounter = 0;
-	//outputPlayer->currentGame = *game;
-
-	game->alivePlayers.push_back(*outputPlayer);
-	game->villagers.push_back(*outputVillager);
-
-	std::string userTesting;
-	std::cout << std::endl << std::endl << "Do you know which role you are? (if yes, enter 'y' if not please read above)";
-	std::cin >> userTesting;
-	while (userTesting != "y") {
-		std::cout << std::endl << std::endl << "Do you know which role you are? (if yes enter 'y', if not please read above)" << std::endl;
-		std::cin >> userTesting;
-	}
-	system("clear");
+std::shared_ptr<Player> createSeer (std::shared_ptr<Game> game) {
+	std::shared_ptr<Player> tmpPlayer = createPlayer(game, 3);
+	game->alivePlayers->push_back(tmpPlayer);
+	game->seers->push_back(tmpPlayer);
+	return tmpPlayer;
 }
 
 bool intInVector (int inputInt, std::vector<int> inputVector, bool output) {
 
+	output = false;
+
 	for (int i : inputVector) {
 		if (inputInt == i) {
-			return true;
+			output = true;
 		}
 	}
-	return false;
+	return output;
 }
 
 std::shared_ptr<Game> roleDeployment(int playerCount) {
 	std::shared_ptr<Game> outputGame = std::make_shared<Game>();
+
+	std::vector<int> notVillagers;
 
 	//Which players are werewolves
 	int werewolveCount = playerCount / 4;
@@ -95,19 +90,42 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 	while (werewolveCount > werewolves.size()) {
 		int tmpNumber = GetRandomNumberBetween(0, playerCount - 1);
 
-		if (intInVector(tmpNumber, werewolves, true) == false) {
+		if (intInVector(tmpNumber, notVillagers, true) == false) {
 			werewolves.push_back(tmpNumber);
+			notVillagers.push_back(tmpNumber);
 		}
 	}
+
+	//Which players are seers
+	int seerCount = 0;
+	if (playerCount > 4) {
+		seerCount = 1;
+	}
+	std::vector<int> seers;
+	while (seerCount > seers.size()) {
+		int tmpNumber = GetRandomNumberBetween(0, playerCount - 1);
+
+		if (intInVector(tmpNumber, notVillagers, true) == false) {
+			seers.push_back(tmpNumber);
+			notVillagers.push_back(tmpNumber);
+		}
+	}
+	
 
 	//Creation of the players
 	for (int i = 0; i < playerCount; i++)
 	{
+		std::shared_ptr<Player> tmpPlayer;
 		if (intInVector(i, werewolves, true)) {
-			createWerewolf(outputGame);
+			tmpPlayer = createWerewolf(outputGame);
+		} else if (intInVector(i, seers, true)) {
+			tmpPlayer = createSeer(outputGame);
 		} else {
-			createVillager(outputGame);
+			tmpPlayer = createVillager(outputGame);
 		}
+
+		tmpPlayer->id = i;
+
 	}
 
 	outputGame->werewolveCount = werewolveCount;
@@ -118,7 +136,12 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 int main()
 {
 	//Game* mainGame = roleDeployment(playerCount);
-	std::shared_ptr<Game> mainGame = roleDeployment(9);
-	//turnNight(Game g);
-	turnDay();
+	std::shared_ptr<Game> mainGame = roleDeployment(10);
+	while (mainGame->gameOver == false) {
+		turnNight(mainGame);
+		if (mainGame->gameOver == false) {
+			turnDay(mainGame);
+		}
+	}
+	
 }
