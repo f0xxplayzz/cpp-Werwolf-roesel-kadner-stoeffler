@@ -4,7 +4,7 @@
 #include <string>
 #include "narrator.cpp"
 #include <iostream>
-#include "Roles/player.cpp"
+#include "player.cpp"
 
 
 class Game {
