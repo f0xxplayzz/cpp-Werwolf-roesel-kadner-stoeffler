@@ -26,7 +26,7 @@ public:
     void write_join(std::shared_ptr<connection_t> con);
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void handle_client_answer(std::shared_ptr<connection_t> con);
-    void handle_write(error_code_t ec, size_t);
+    //void handle_write(error_code_t ec, size_t);
 
 private:
     Game* hostData;
@@ -75,8 +75,7 @@ void Server::handle_accept(error_code_t ec, std::shared_ptr<connection_t> con)
 void Server::handle_client_answer(std::shared_ptr<connection_t> con)
 {
     std::string client_answer = con->buf;
-    char* client_answer_cstring = new char[client_answer.length() + 1];
-    std::strcpy(client_answer_cstring,client_answer.c_str());
+    char* client_answer_cstring = to_cString(client_answer);
     std::cout << "Got the following answer" << client_answer << std::endl;
     std::string server_answer = "" ;
     if(phase==client_answer_cstring[2])
@@ -103,6 +102,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
 
                         Get Information or Implementation from player.cpp
                     */
+                   
                 }
                 break;
                 case DONE:
@@ -255,6 +255,8 @@ void Server::write_join(std::shared_ptr<connection> con)
     };
     std::string message = "1";
     message += idCounter++;
+    //message += role;
+    //message += 
     char* msg = to_cString(message);
     strcpy(con->buf, msg);
     std::cout << con->buf << std::endl;
