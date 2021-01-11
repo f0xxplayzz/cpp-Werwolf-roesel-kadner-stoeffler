@@ -1,14 +1,12 @@
-#pragma once
 #include <boost/asio.hpp>
 #include <vector>
 #include <memory>
 #include <iostream>
 #include <thread>
-
-#define BUFFERLENGTH 100
-
 using tcp = boost::asio::ip::tcp;
 using error_code_t = boost::system::error_code;
+
+#define BUFFERLENGTH 500
 
 typedef struct connection
 {

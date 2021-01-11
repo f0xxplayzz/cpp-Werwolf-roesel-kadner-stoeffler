@@ -15,6 +15,7 @@
 #define DO_NOTHING 3
 #define NOTDONE 1
 #define DONE 2
+#define SKIPPED 3
 
 class Server
 {
@@ -26,11 +27,11 @@ public:
     void write_join(std::shared_ptr<connection_t> con);
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void handle_client_answer(std::shared_ptr<connection_t> con);
-    //void handle_write(error_code_t ec, size_t);
-    std::vector<char> roles;
 
 private:
     Game* hostData;
+    std::vector<char> roles;
+    std::string join_messages;
     char phase;
     char phaseCounter;
     char playerCount=4;
@@ -38,7 +39,7 @@ private:
     std::vector<std::shared_ptr<connection_t>> _connections;
     boost::asio::io_service _io_service;
     tcp::acceptor _acceptor;
-    tcp::endpoint _endpoint{tcp::v4(), 2233};
+    tcp::endpoint _endpoint{tcp::v4(), 8999};
     std::unique_ptr<std::thread> _thread;
 };
 
@@ -46,11 +47,13 @@ Server::Server() : _io_service{}, _acceptor(this->_io_service)
 {
     //testing Data
     roles.push_back(1);
-    roles.push_back(1);
-    roles.push_back(1);
     roles.push_back(2);
+    roles.push_back(3);
+    roles.push_back(1);
     //testing Data
     phase = JOIN;
+    join_messages = "";
+    hostData = new Game();
 }
 
 Server::~Server()
@@ -85,7 +88,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
     std::string client_answer = con->buf;
     char* client_answer_cstring = to_cString(client_answer);
     std::string server_answer = "" ;
-    std::string result;
+    std::string result = "";
     std::vector<char> id_vector;
     std::vector<char> role_vector;
     if(phase==client_answer_cstring[2])
@@ -96,14 +99,16 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             {
                 char id = client_answer_cstring[0];
                 std::string name = client_answer.substr(6);
-                Player* p = new Player();
+                std::shared_ptr<Player> p = std::make_shared<Player>();
                 p->alive=true;
                 p->role=client_answer_cstring[1];
                 p->id=id;
-                //std::shared_ptr<Player> player_ptr = std::make_shared<Player>(p);
-                //hostData->alivePlayers->push_back(player_ptr);
-                /*switch(p->role)
+                p->name = name;
+                hostData->alivePlayers->push_back(p);
+                switch(client_answer_cstring[1])
                 {
+                    case 1:
+                    hostData->villagers->push_back(p);
                     case 2:
                     hostData->werewolves->push_back(p);
                     break;
@@ -113,16 +118,20 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     case 4:
                     hostData->witches->push_back(p);
                     break;
-                }*/
+                }
                 server_answer += phase;
-                server_answer += "Joined the game as "; 
+                server_answer += "Joined the game as ";
                 server_answer += name;
+                join_messages += name;
+                join_messages += " joined the game" ;
+                join_messages += '\n' ;
+                server_answer += '\n' ;
+                server_answer += join_messages ;
                 std::cout << name << " joined the game"<<std::endl;
-                phaseCounter++;
-                if(phaseCounter>=playerCount)
+                if(hostData->alivePlayers->size()>=playerCount)
                 {
                     phase=WEREWOLVEVOTING;
-                    std::cout << "Changed Phase" <<std::endl;
+                    std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
                     phaseCounter=0;
                 }
             } 
@@ -140,14 +149,25 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         Get Information or Implementation from player.cpp
                     */
                     int iterator = 1;
-			        for (int i = 0; i < hostData->villagers->size();i++) 
+			        for (int i = 0; i < hostData->alivePlayers->size();i++) 
                     {
-                        result += iterator++; 
-                        result += ".) ";
-                        result += hostData->villagers->at(i)->name;
-                        result += '\n';
-                        id_vector.push_back(hostData->villagers->at(i)->id);
+                        if(hostData->alivePlayers->at(i)->role != 2)
+                        {
+                            result += std::to_string(iterator++); 
+                            result += ".) ";
+                            result += hostData->alivePlayers->at(i)->name;
+                            result += '\n';
+                            id_vector.push_back(hostData->alivePlayers->at(i)->id);
+                        }
 			        }
+                    server_answer= "";
+                    server_answer += SEER;
+                    server_answer += (char) id_vector.size();
+                    for(int i=0;i<id_vector.size();i++)
+                    {
+                        server_answer += id_vector.at(i);
+                    }
+                    server_answer += result;
                 }
                 break;
                 case DONE:
@@ -156,14 +176,29 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     Persons will be killed in the step WEREWOLVEKILL separetly
                 */
                 {
+                    std::cout <<"Received vote" << std::endl;
                     for(std::shared_ptr<Player> p : *hostData->alivePlayers.get())
                         if(p->id=client_answer_cstring[5])
+                        {
                             p->voteCounter++;
+                        }
                     phaseCounter++;
                     if(phaseCounter>=hostData->werewolves->size())
                     {
                         phase = SEER;
+                        std::cout << "Changed Phase to SEER" << std::endl;
                         phaseCounter = 0;
+                    }
+                }
+                break;
+                case SKIPPED:
+                {
+                    phaseCounter++;
+                    if(phaseCounter >= hostData->alivePlayers->size())
+                    {
+                        phase=SEER;
+                        std::cout << "Changed Phase to SEER" <<std::endl;
+                        phaseCounter=0;
                     }
                 }
                 break;
@@ -230,7 +265,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         {
 				            if (client_answer_cstring[0] != hostData->alivePlayers->at(i)->id) 
                             {
-                                result += iterator++;
+                                result += std::to_string(iterator++);
                                 result += "). ";
                                 result += hostData->alivePlayers->at(i)->name;
                                 result += '\n';
@@ -241,9 +276,26 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     break;
                     case DONE:
                     {
-                        phase++;
+                        phaseCounter++;
+                        if(phaseCounter>=hostData->alivePlayers->size())
+                        {
+                            phase=WEREWOLVEKILL;
+                            std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
+                            phaseCounter=0;
+                        }
                     }
                     break;
+                    case SKIPPED:
+                    {
+                        phaseCounter++;
+                        if(phaseCounter >= hostData->alivePlayers->size())
+                        {
+                            phase=WEREWOLVEKILL;
+                            std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
+                            phaseCounter=0;
+                        }
+                    }
+                break;
                 }
 
             }
@@ -252,9 +304,14 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 phaseCounter++;
                 if(phaseCounter>=hostData->alivePlayers->size())
                 {
-                    phase++;
+                    phase=VOTING;
+                    std::cout << "Changed Phase to VOTING" <<std::endl;
                     phaseCounter=0;
                 }
+                server_answer += phase;
+                server_answer += 1;
+                server_answer += 1;
+                server_answer += hostData->getMostVoted();
                 hostData->executeVotes();
             break;
             case VOTING:
@@ -271,12 +328,19 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         int iterator = 1;
                         for (int i = 0; i < hostData->alivePlayers->size();i++) 
                         {
-                            result += iterator++; 
+                            result += std::to_string(iterator++); 
                             result += ".) ";
                             result += hostData->villagers->at(i)->name;
                             result += '\n';
                             id_vector.push_back(hostData->alivePlayers->at(i)->id);
                         }
+                        server_answer += phase;
+                        server_answer += (char) id_vector.size();
+                        for(int i=0;i<id_vector.size();i++)
+                        {
+                            server_answer += id_vector.at(i);
+                        }
+                        server_answer += result;
                     }
                     break;
                     case DONE:
@@ -287,7 +351,8 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         phaseCounter++;
                         if(phaseCounter>=hostData->alivePlayers->size())
                             {
-                                phase++;
+                                phase=EXECUTION;
+                                std::cout << "Changed phase to EXECUTION" <<std::endl;
                                 phaseCounter=0;
                             }
                     }
@@ -300,9 +365,14 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 phaseCounter++;
                 if(phaseCounter>=hostData->alivePlayers->size())
                 {
-                    phase++;
+                    phase=WEREWOLVEVOTING;
+                    std::cout << "Changed phase to WEREWOLVEVOTING" << std::endl;
                     phaseCounter=0;
                 }
+                server_answer += phase;
+                server_answer += 1;
+                server_answer += 1;
+                server_answer += hostData->getMostVoted();
                 hostData->executeVotes();
             break;
         }

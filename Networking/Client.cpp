@@ -16,6 +16,7 @@
 #define DO_NOTHING 3
 #define NOTDONE 1
 #define DONE 2
+#define SKIPPED 3
 
 class Client
 {
@@ -51,7 +52,7 @@ void Client::start()
 
         char buf[BUFFERLENGTH];
         boost::asio::ip::tcp::resolver resolver{io_service};
-        boost::asio::ip::tcp::resolver::query query(tcp::v4(),"127.0.0.1", "2233");
+        boost::asio::ip::tcp::resolver::query query(tcp::v4(),"127.0.0.1", "8999");
         auto it = resolver.resolve(query);
 
         boost::asio::async_connect(connection->_sock, it,[this,connection] (const boost::system::error_code &ec,auto x)
@@ -98,6 +99,8 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
         {
             case WEREWOLVEVOTING:
             {
+                std::cout << "The complete village falls asleep" << std::endl;
+                std::cout << "The Werewolves wake up" << std::endl;
                 if(role==2)
                 {
                     std::vector<char> ids;
@@ -105,26 +108,30 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     {
                         ids.push_back(server_answer_cString[1+i]);
                     }
-                    int start = ids.size()+3;
-                    std::string output = server_answer.substr(start,server_answer.length()-start);
+                    int start = ids.size()+2;
+                    std::string output = server_answer.substr(start);
                     std::cout << "The following people can be killed:" << std::endl;
                     std::cout << output << std::endl;
                     int vote = 0;
                     char result;
                     do
                     {
-                        std::cin >> vote;
-                    } while (vote>0 && vote<ids.size());
-                    char voted = ids[vote];
+                        std::string temp;
+                        std::cin >> temp;
+                        vote = std::stoi(temp);
+                    } while (!(vote>0) && !(vote<=ids.size()));
+                    char voted = ids.at(vote-1);
                     client_answer[2] = phase;
-                    phase = phase + 2;
+                    phase = SEER;
                     client_answer[3] = DONE;
                     client_answer[5] = voted;
                 }
                 else
                 { 
-                    phase = phase + 2;
-                    requestAfterSleep(con);
+                    client_answer[2]=phase;
+                    client_answer[3]=SKIPPED;
+                    phase = SEER;
+                    //requestAfterSleep(con);
                 }
                 break;
             }
@@ -135,7 +142,9 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             break;
             case SEER:
             {
-                if(role== SEER)
+                std::cout << "The Werewolves fall asleep" << std::endl;
+                std::cout << "The Seer wakes up" << std::endl;
+                if(role==3)
                 {
                     std::vector<char> roles;
                     int lengthV = (int) server_answer_cString[1];
@@ -150,9 +159,11 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     int vote = 0;
                     do
                     {
-                        std::cin >> vote;
-                    } while (vote>0 && vote<roles.size());
-                    char result = roles[vote];
+                        std::string temp;
+                        std::cin >> temp;
+                        vote = std::stoi(temp);
+                    } while (!(vote>0 && vote<roles.size()));
+                    char result = roles.at(vote-1);
                     std::string roleOutput;
                     switch(result)
                     {
@@ -173,21 +184,25 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     client_answer[3] = DONE;
                 }
                 else
-                {
-                    phase++;
-                    requestAfterSleep(con);
+                { 
+                    client_answer[2]=phase;
+                    client_answer[3]=SKIPPED;
+                    phase = WEREWOLVEKILL;
+                    //requestAfterSleep(con);
                 }
             }
             break;
             case WEREWOLVEKILL:
             {
-                std::string result = server_answer.substr(4,10);
+                std::cout << "The seer falls asleep" << std::endl;
+                std::string result = server_answer.substr(3,10);
                 phase++;
                 std::cout << "The following person died tonight: " << result << std::endl;
             }
             break;
             case VOTING:
             {
+                std::cout << "The complete village wakes up" << std::endl;
                 std::vector<char> ids;
                 for(int i = 1;i <= server_answer_cString[1];i++)
                 {
@@ -201,9 +216,11 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                 char result;
                 do
                 {
-                    std::cin >> vote;
-                } while (vote>0 && vote<ids.size());
-                char voted = ids[vote];
+                    std::string temp;
+                    std::cin >> temp;
+                    vote = std::stoi(temp);
+                } while (!(vote>0 && vote<ids.size()));
+                char voted = ids.at(vote -1);
                 client_answer[2] = phase++;
                 client_answer[3] = DONE;
                 client_answer[5] = voted;
@@ -214,6 +231,7 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                 std::string result = server_answer.substr(4,10);
                 phase = WEREWOLVEVOTING;
                 std::cout << "The following person was executed: " << result << std::endl;
+                std::cout << "The complete village falls asleep" << std::endl;
             }
             break;
         }
@@ -323,7 +341,7 @@ void Client::receive_join(std::shared_ptr<connection_t> con)
     final_msg += join_msg;
     final_msg += name;
     char* final_msg_c = to_cString(final_msg);
-    phase = WEREWOLVEVOTING;
+    phase=WEREWOLVEVOTING;
     strcpy(con->buf,final_msg_c);
     auto buf =boost::asio::buffer(con->buf,BUFFERLENGTH);
     boost::asio::async_write(con->_sock,buf,write_handler_join);

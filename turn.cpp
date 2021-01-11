@@ -126,6 +126,19 @@ class Game {
 		//l�scht meist gevoteten Spieler aus dem vector Villagers
 	}
 
+	std::string getMostVoted()
+	{
+		int mostVoted = 0;
+		int mostVotes = 0;
+		for (int i = 0; i < alivePlayers->size();i++) {
+			if (alivePlayers->at(i)->voteCounter > mostVotes) {
+				mostVotes = alivePlayers->at(i)->voteCounter;
+				mostVoted = i;
+			}
+		}
+		return alivePlayers->at(mostVoted)->name;
+	}
+
 	std::string toString(){
 		std::string temp = "";
 		temp += (char)werewolveCount;
