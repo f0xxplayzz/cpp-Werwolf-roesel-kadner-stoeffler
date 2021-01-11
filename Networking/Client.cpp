@@ -67,7 +67,7 @@ void Client::start()
 
 void Client::goSleeping()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 }
 
 void Client::requestAfterSleep(std::shared_ptr<connection_t> con)
@@ -162,7 +162,7 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                         std::string temp;
                         std::cin >> temp;
                         vote = std::stoi(temp);
-                    } while (!(vote>0 && vote<roles.size()));
+                    } while (!(vote>0 && vote<=roles.size()));
                     char result = roles.at(vote-1);
                     std::string roleOutput;
                     switch(result)
@@ -194,7 +194,7 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             case WEREWOLVEKILL:
             {
                 std::cout << "The seer falls asleep" << std::endl;
-                std::string result = server_answer.substr(3,10);
+                std::string result = server_answer.substr(3);
                 phase++;
                 std::cout << "The following person died tonight: " << result << std::endl;
             }
@@ -203,12 +203,13 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             {
                 std::cout << "The complete village wakes up" << std::endl;
                 std::vector<char> ids;
-                for(int i = 1;i <= server_answer_cString[1];i++)
+                int length = (int) server_answer_cString[1];
+                for(int i = 1;i <= length;i++)
                 {
                     ids.push_back(server_answer_cString[1+i]);
                 }
-                int start = ids.size()+3;
-                std::string output = server_answer.substr(start,server_answer.length()-start);
+                int start = ids.size()+2;
+                std::string output = server_answer.substr(start);
                 std::cout << "The following people can be voted to be executed:" << std::endl;
                 std::cout << output << std::endl;
                 int vote = 0;
@@ -218,7 +219,7 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     std::string temp;
                     std::cin >> temp;
                     vote = std::stoi(temp);
-                } while (!(vote>0 && vote<ids.size()));
+                } while (!(vote>0 && vote<=ids.size()));
                 char voted = ids.at(vote -1);
                 client_answer[2] = phase++;
                 client_answer[3] = DONE;
@@ -227,7 +228,7 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             break;
             case EXECUTION:
             {
-                std::string result = server_answer.substr(4,10);
+                std::string result = server_answer.substr(4);
                 phase = WEREWOLVEVOTING;
                 std::cout << "The following person was executed: " << result << std::endl;
                 std::cout << "The complete village falls asleep" << std::endl;

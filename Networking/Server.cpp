@@ -99,6 +99,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             {
                 char id = client_answer_cstring[0];
                 std::string name = client_answer.substr(6);
+                //createPlayer method verwenden
                 std::shared_ptr<Player> p = std::make_shared<Player>();
                 p->alive=true;
                 p->role=client_answer_cstring[1];
@@ -266,7 +267,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         int iterator = 1;
                         for (int i = 0; i < hostData->alivePlayers->size(); i++) 
                         {
-				            if (client_answer_cstring[0] != hostData->alivePlayers->at(i)->id) 
+				            if (hostData->alivePlayers->at(i)->role != 3 ) 
                             {
                                 result += std::to_string(iterator++);
                                 result += "). ";
@@ -316,17 +317,17 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             break;
             case WEREWOLVEKILL:
                 phaseCounter++;
-                if(phaseCounter>=hostData->alivePlayers->size())
-                {
-                    phase=VOTING;
-                    std::cout << "Changed Phase to VOTING" <<std::endl;
-                    phaseCounter=0;
-                }
                 server_answer += phase;
                 server_answer += 1;
                 server_answer += 1;
                 server_answer += hostData->getMostVoted();
-                hostData->executeVotes();
+                if(phaseCounter>=hostData->alivePlayers->size()-1)
+                {
+                    phase=VOTING;
+                    std::cout << "Changed Phase to VOTING" <<std::endl;
+                    phaseCounter=0;
+                    hostData->executeVotes();
+                }
             break;
             case VOTING:
             {
@@ -344,7 +345,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         {
                             result += std::to_string(iterator++); 
                             result += ".) ";
-                            result += hostData->villagers->at(i)->name;
+                            result += hostData->alivePlayers->at(i)->name;
                             result += '\n';
                             id_vector.push_back(hostData->alivePlayers->at(i)->id);
                         }
@@ -355,6 +356,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             server_answer += id_vector.at(i);
                         }
                         server_answer += result;
+                        std::cout << server_answer << std::endl;
                     }
                     break;
                     case DONE:
@@ -391,6 +393,15 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 hostData->executeVotes();
             break;
         }
+        strcpy(con->buf, server_answer.c_str());
+        auto write_handler = [this,con](error_code_t ec, size_t written) {
+            if (!ec)
+            {
+                listen_for_answer(con);
+            }
+        };
+        auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
+        boost::asio::async_write(con->_sock, buf, write_handler);
     }
     else
     {
@@ -407,17 +418,6 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
         auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
         boost::asio::async_write(con->_sock, buf, write_handler);
     }
-
-    strcpy(con->buf, server_answer.c_str());
-
-    auto write_handler = [this,con](error_code_t ec, size_t written) {
-        if (!ec)
-        {
-            listen_for_answer(con);
-        }
-    };
-    auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
-    boost::asio::async_write(con->_sock, buf, write_handler);
 }
 
 void Server::listen_for_answer(std::shared_ptr<connection_t> con)
