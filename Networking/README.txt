@@ -2,7 +2,7 @@ Structure of a Client Message:
 0:id
 1:role
 2:phase
-3:DONE/NOTDONE
+3:DONE/NOTDONE/SKIPPED
 4:Case
 5:ID of target
 6-15:string name

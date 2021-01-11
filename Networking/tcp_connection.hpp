@@ -3,6 +3,8 @@
 #include <memory>
 #include <iostream>
 #include <thread>
+#include <stdio.h>
+
 using tcp = boost::asio::ip::tcp;
 using error_code_t = boost::system::error_code;
 

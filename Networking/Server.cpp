@@ -119,6 +119,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     hostData->witches->push_back(p);
                     break;
                 }
+                server_answer = "";
                 server_answer += phase;
                 server_answer += "Joined the game as ";
                 server_answer += name;
@@ -130,9 +131,9 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 std::cout << name << " joined the game"<<std::endl;
                 if(hostData->alivePlayers->size()>=playerCount)
                 {
+                    phaseCounter=0;
                     phase=WEREWOLVEVOTING;
                     std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
-                    phaseCounter=0;
                 }
             } 
             break;
@@ -161,7 +162,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         }
 			        }
                     server_answer= "";
-                    server_answer += SEER;
+                    server_answer += phase;
                     server_answer += (char) id_vector.size();
                     for(int i=0;i<id_vector.size();i++)
                     {
@@ -189,6 +190,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         std::cout << "Changed Phase to SEER" << std::endl;
                         phaseCounter = 0;
                     }
+                    server_answer +=phase;
                 }
                 break;
                 case SKIPPED:
@@ -200,6 +202,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         std::cout << "Changed Phase to SEER" <<std::endl;
                         phaseCounter=0;
                     }
+                    server_answer +=phase;
                 }
                 break;
             }
@@ -272,10 +275,19 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
 					            role_vector.push_back(hostData->alivePlayers->at(i)->role);
 				            }
                         }
+                        server_answer= "";
+                        server_answer += phase;
+                        server_answer += (char) role_vector.size();
+                        for(int i=0;i<role_vector.size();i++)
+                        {
+                            server_answer += role_vector.at(i);
+                        }
+                        server_answer += result;
                     }
                     break;
                     case DONE:
                     {
+                        std::cout << "Seer has chosen" << std::endl;
                         phaseCounter++;
                         if(phaseCounter>=hostData->alivePlayers->size())
                         {
@@ -283,6 +295,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
                             phaseCounter=0;
                         }
+                        server_answer +=phase;
                     }
                     break;
                     case SKIPPED:
@@ -294,6 +307,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
                             phaseCounter=0;
                         }
+                        server_answer +=phase;
                     }
                 break;
                 }
@@ -346,15 +360,16 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     case DONE:
                     {
                         for(std::shared_ptr<Player> p : *hostData->alivePlayers.get())
-                                if(p->id=client_answer_cstring[5])
-                                    p->voteCounter++;
+                            if(p->id=client_answer_cstring[5])
+                                p->voteCounter++;
                         phaseCounter++;
                         if(phaseCounter>=hostData->alivePlayers->size())
-                            {
-                                phase=EXECUTION;
-                                std::cout << "Changed phase to EXECUTION" <<std::endl;
-                                phaseCounter=0;
-                            }
+                        {
+                            phase=EXECUTION;
+                            std::cout << "Changed phase to EXECUTION" <<std::endl;
+                            phaseCounter=0;
+                        }
+                        server_answer +=phase;
                     }
                     break;
                 }

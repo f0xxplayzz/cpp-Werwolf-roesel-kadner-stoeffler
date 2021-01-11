@@ -67,7 +67,7 @@ void Client::start()
 
 void Client::goSleeping()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 void Client::requestAfterSleep(std::shared_ptr<connection_t> con)
@@ -95,6 +95,7 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
     client_answer[1]=role;
     if(phase==server_answer_cString[0])
     {
+        std::cout << "Same phase as Server" << std::endl;
         switch(phase)
         {
             case WEREWOLVEVOTING:
@@ -131,7 +132,6 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     client_answer[2]=phase;
                     client_answer[3]=SKIPPED;
                     phase = SEER;
-                    //requestAfterSleep(con);
                 }
                 break;
             }
@@ -152,8 +152,8 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                         {
                             roles.push_back(server_answer_cString[1+i]);
                         }
-                    int start = roles.size()+3;
-                    std::string output = server_answer.substr(start,server_answer.length()-start);
+                    int start = roles.size()+2;
+                    std::string output = server_answer.substr(start);
                     std::cout << "Which persons role do you want to see:" << std::endl;
                     std::cout << output << std::endl;
                     int vote = 0;
@@ -188,7 +188,6 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     client_answer[2]=phase;
                     client_answer[3]=SKIPPED;
                     phase = WEREWOLVEKILL;
-                    //requestAfterSleep(con);
                 }
             }
             break;

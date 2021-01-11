@@ -4,7 +4,7 @@
             "name": "Win64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:\\installation\\path\\include\\boost-1_74/**"
+                "C:\\installation\\path\\include\\boost-1_75/**"
             ],
             "defines": [
                 "_DEBUG",
