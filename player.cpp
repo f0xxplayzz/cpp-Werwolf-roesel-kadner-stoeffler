@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <memory>
-#include "./../narrator.cpp"
+#include "narrator.cpp"
 
 class Player {
 	public:

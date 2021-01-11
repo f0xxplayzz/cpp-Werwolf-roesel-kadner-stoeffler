@@ -5,6 +5,9 @@
 #include "string.h"
 #include <memory>
 #include "utils/CppRandom.hpp"
+#include "mainwindow.h"
+#include <QApplication>
+
 
 bool nameAlreadyUsed (std::shared_ptr<Game> game, std::string name, bool output) {
 
@@ -133,9 +136,13 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 	return outputGame;
 	
 }
-int main()
+int main(int argc, char *argv[])
 {
-	//Game* mainGame = roleDeployment(playerCount);
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
+    //Game* mainGame = roleDeployment(playerCount);
 	std::shared_ptr<Game> mainGame = roleDeployment(10);
 	while (mainGame->gameOver == false) {
 		turnNight(mainGame);
