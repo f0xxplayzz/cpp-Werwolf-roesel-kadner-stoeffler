@@ -180,18 +180,18 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 {
                     std::cout <<"Received vote" << std::endl;
                     for(std::shared_ptr<Player> p : *hostData->alivePlayers.get())
-                        if(p->id=client_answer_cstring[5])
+                        if(p->id==client_answer_cstring[5])
                         {
                             p->voteCounter++;
                         }
                     phaseCounter++;
+                    server_answer +=phase;
                     if(phaseCounter>=hostData->werewolves->size())
                     {
                         phase = SEER;
                         std::cout << "Changed Phase to SEER" << std::endl;
                         phaseCounter = 0;
                     }
-                    server_answer +=phase;
                 }
                 break;
                 case SKIPPED:
@@ -290,25 +290,25 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     {
                         std::cout << "Seer has chosen" << std::endl;
                         phaseCounter++;
+                        server_answer +=phase;
                         if(phaseCounter>=hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEKILL;
                             std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
                             phaseCounter=0;
                         }
-                        server_answer +=phase;
                     }
                     break;
                     case SKIPPED:
                     {
                         phaseCounter++;
+                        server_answer += phase;
                         if(phaseCounter >= hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEKILL;
                             std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
                             phaseCounter=0;
                         }
-                        server_answer +=phase;
                     }
                 break;
                 }
@@ -316,18 +316,36 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             }
             break;
             case WEREWOLVEKILL:
-                phaseCounter++;
-                server_answer += phase;
-                server_answer += 1;
-                server_answer += 1;
-                server_answer += hostData->getMostVoted();
-                if(phaseCounter>=hostData->alivePlayers->size()-1)
+            {
+                switch(client_answer_cstring[3])
                 {
-                    phase=VOTING;
-                    std::cout << "Changed Phase to VOTING" <<std::endl;
-                    phaseCounter=0;
-                    hostData->executeVotes();
+                    case NOTDONE:
+                    {
+                        char killedPlayerID = hostData->getMostVoted();
+                        server_answer = "";
+                        server_answer += phase;
+                        server_answer += 1;
+                        server_answer += killedPlayerID;
+                        std::string name = hostData->getMostVoted_name();
+                        server_answer += name;
+                        std::cout << server_answer << std::endl;
+                    }
+                    break;
+                    case DONE:
+                    {
+                        phaseCounter++;
+                        server_answer += phase;
+                        if(phaseCounter>=hostData->alivePlayers->size())
+                        {
+                            phase=VOTING;
+                            std::cout << "Changed Phase to VOTING" <<std::endl;
+                            phaseCounter=0;
+                            hostData->executeVotes();
+                        }
+                    }
+                    break;
                 }
+            }
             break;
             case VOTING:
             {
@@ -340,23 +358,26 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             Send Ids as chars
                             Send names as ONE string
                         */
-                        int iterator = 1;
+                         int iterator = 1;
                         for (int i = 0; i < hostData->alivePlayers->size();i++) 
                         {
-                            result += std::to_string(iterator++); 
-                            result += ".) ";
-                            result += hostData->alivePlayers->at(i)->name;
-                            result += '\n';
-                            id_vector.push_back(hostData->alivePlayers->at(i)->id);
+                            if(hostData->alivePlayers->at(i)->id != client_answer_cstring[0])
+                            {
+                                result += std::to_string(iterator++); 
+                                result += ".) ";
+                                result += hostData->alivePlayers->at(i)->name;
+                                result += '\n';
+                                id_vector.push_back(hostData->alivePlayers->at(i)->id);
+                            }
                         }
-                        server_answer += phase;
+                        server_answer = "";
+                        server_answer += VOTING;
                         server_answer += (char) id_vector.size();
                         for(int i=0;i<id_vector.size();i++)
                         {
                             server_answer += id_vector.at(i);
                         }
                         server_answer += result;
-                        std::cout << server_answer << std::endl;
                     }
                     break;
                     case DONE:
@@ -378,19 +399,29 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             }
             break;
             case EXECUTION:
-                phase = WEREWOLVEVOTING;
+            {
                 phaseCounter++;
+                int killedPlayerID = hostData->getMostVoted();
+                std::string killedPlayerName = "";
+                    server_answer += phase;
+                    server_answer += 1;
+                    server_answer += killedPlayerID;
+                    for(std::shared_ptr<Player> p : *hostData->alivePlayers)
+                    {
+                        if(killedPlayerID == p->id)
+                        {
+                            killedPlayerName = p->name;
+                        }
+                    }
+                    server_answer += killedPlayerName;
                 if(phaseCounter>=hostData->alivePlayers->size())
                 {
                     phase=WEREWOLVEVOTING;
                     std::cout << "Changed phase to WEREWOLVEVOTING" << std::endl;
                     phaseCounter=0;
+                    hostData->executeVotes();
                 }
-                server_answer += phase;
-                server_answer += 1;
-                server_answer += 1;
-                server_answer += hostData->getMostVoted();
-                hostData->executeVotes();
+            }
             break;
         }
         strcpy(con->buf, server_answer.c_str());

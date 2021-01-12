@@ -17,6 +17,7 @@
 #define NOTDONE 1
 #define DONE 2
 #define SKIPPED 3
+#define SLEEPINGTIME 500
 
 class Client
 {
@@ -67,7 +68,7 @@ void Client::start()
 
 void Client::goSleeping()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEPINGTIME));
 }
 
 void Client::requestAfterSleep(std::shared_ptr<connection_t> con)
@@ -180,7 +181,8 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                         roleOutput = "Witch";
                     }
                     std::cout << "The person was a " << roleOutput <<std::endl;
-                    client_answer[2] = phase++;
+                    phase= WEREWOLVEKILL;
+                    client_answer[2] = SEER;
                     client_answer[3] = DONE;
                 }
                 else
@@ -193,18 +195,31 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             break;
             case WEREWOLVEKILL:
             {
-                std::cout << "The seer falls asleep" << std::endl;
-                std::string result = server_answer.substr(3);
-                phase++;
-                std::cout << "The following person died tonight: " << result << std::endl;
+                std::cout << server_answer << std::endl;
+                if(!(server_answer.length() <=3))
+                {
+                    std::cout << "The seer falls asleep" << std::endl;
+                    std::string result = server_answer.substr(3);
+                    if(server_answer_cString[2]==id)
+                    {
+                        std::cout << "YOU DIED" << std::endl;
+                        gameOver = true;
+                    }
+                    else{
+                        phase++;
+                        std::cout << "The following person died tonight: " << result << std::endl;
+                    }
+                    client_answer[2] = WEREWOLVEKILL;
+                    client_answer[3] = DONE;
+                }
+                else requestAfterSleep(con);
             }
             break;
             case VOTING:
             {
                 std::cout << "The complete village wakes up" << std::endl;
                 std::vector<char> ids;
-                int length = (int) server_answer_cString[1];
-                for(int i = 1;i <= length;i++)
+                for(int i = 1;i <= server_answer_cString[1];i++)
                 {
                     ids.push_back(server_answer_cString[1+i]);
                 }
@@ -228,13 +243,18 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             break;
             case EXECUTION:
             {
-                std::string result = server_answer.substr(4);
+                std::string result = server_answer.substr(3);
                 phase = WEREWOLVEVOTING;
                 std::cout << "The following person was executed: " << result << std::endl;
                 std::cout << "The complete village falls asleep" << std::endl;
             }
             break;
+            case 9:
+            //not implemented yet / GAMEOVER
+            break;
         }
+        if(!gameOver)
+        {
         auto write_handler = [this,con](error_code_t ec, size_t written)
         {
             if(!ec)
@@ -245,6 +265,21 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
         strcpy(con->buf,client_answer);
         auto buf =boost::asio::buffer(con->buf,BUFFERLENGTH);
         boost::asio::async_write(con->_sock,buf,write_handler);
+        }else
+        {
+            auto write_handler = [this,con](error_code_t ec, size_t written)
+            {   
+                if(!ec)
+                {
+                    std::cout << "Closing Client" << std::endl;
+                    std::string temp;
+                    std::cin >> temp;
+                }
+            };
+            strcpy(con->buf,client_answer);
+            auto buf =boost::asio::buffer(con->buf,BUFFERLENGTH);
+            boost::asio::async_write(con->_sock,buf,write_handler);
+        }
     }
     else if (server_answer_cString[0]== JOIN && joined == false)
     {
@@ -255,6 +290,9 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
     }
     else if (server_answer_cString[0]==9)
     {
+        std::cout << "YOU DIED" << std::endl;
+        std::cin;
+        std::cout << std::endl;
         std::cout << "Closing Client" << std::endl;
     }
     else

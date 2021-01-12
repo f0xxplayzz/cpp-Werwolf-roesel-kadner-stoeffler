@@ -126,7 +126,7 @@ class Game {
 		//l�scht meist gevoteten Spieler aus dem vector Villagers
 	}
 
-	std::string getMostVoted()
+	char getMostVoted()
 	{
 		int mostVoted = 0;
 		int mostVotes = 0;
@@ -136,6 +136,20 @@ class Game {
 				mostVoted = i;
 			}
 		}
+		return alivePlayers->at(mostVoted)->id;
+	}
+
+	std::string getMostVoted_name()
+	{
+		int mostVoted = 0;
+		int mostVotes = 0;
+		for (int i = 0; i < alivePlayers->size();i++) {
+			if (alivePlayers->at(i)->voteCounter > mostVotes) {
+				mostVotes = alivePlayers->at(i)->voteCounter;
+				mostVoted = i;
+			}
+		}
+		std::string * ptr;
 		return alivePlayers->at(mostVoted)->name;
 	}
 
