@@ -1,14 +1,13 @@
 #pragma once
 #include <iostream>
 #include <stdio.h>
-#include "turn.cpp"
 #include <memory>
 #include <string.h>
-#include "./utils/CppRandom.hpp"
+//#include "./utils/CppRandom.hpp"
 
 class Narrator {
 
-	//all std::cout static methods, maybe with random elements
+	//Prints what the Narrator says. This could allow for random messages to appear.
 
 	public:
 
@@ -73,16 +72,77 @@ class Narrator {
 			std::cout << "Which player do you want to vote? ";
 		}
 
-		static void showOtherWerewolves(std::shared_ptr<std::vector<std::string>> otherWerewolves) {
+		static void showOtherWerewolvesStart() {
 			std::cout << "The other werewolves are: ";
-			for (int i = 0; i < otherWerewolves->size(); i++) {
-				std::cout << otherWerewolves->at(i) << " ";
-			}
-			std::cout<<std::endl;
 		}
 
-		static void voteKillPossibilities(std::shared_ptr<std::vector<std::string>> aliveNamesWithoutWerewolves) {
-			std::cout << "You can vote to kill one of the following players:" << std::endl;
-			
+		static void showOtherWerewolves(std::string werewolve) {
+			std::cout << werewolve << " ";
 		}
+
+		static void voteKillStart() {
+			std::cout << "You can vote to kill one of the following players:" << std::endl;
+		}
+
+		static void voteKillPossibilities(std::string werewolve, int iterator) {
+			std::cout << iterator << ".) " << werewolve << std::endl;
+		}
+
+		static void voteKillDecision() {
+			std::cout << "Who do you want to kill?" << std::endl;
+		}
+
+		static void voteSeerStart() {
+			std::cout << "You can see the role of one of the following players:" << std::endl;
+		}
+
+		static void voteSeerPossibilities(std::string name, int iterator) {
+			std::cout << iterator << ".) " << name << std::endl;
+		}
+
+		static void voteSeerDecision() {
+			std::cout << "Which player do you want to investigate? ";
+		}
+
+		static void voteSeerResult(std::string name, std::string role) {
+			std::cout << name << " is a " << role << "!" << std::endl;
+		}
+
+		static void gameEndVillager() {
+			std::cout << "The Villagers have won!" << std::endl;
+		}
+		
+		static void gameEndWerewolves() {
+			std::cout << "The Werewolves have won!" << std::endl;
+		}
+
+		static void gameEndDraw() {
+			std::cout << "The Narrator has won!" << std::endl;
+		}
+
+		static void wakeUp(std::string name) {
+			std::cout << name << " has awoken from their slumber." << std::endl;
+		}
+
+		static void fallAsleep(std::string name) {
+			std::cout << name << " has fallen asleep." << std::endl;
+		}
+
+		static void turnStart(std::string name) {
+			std::cout << name << "s turn has started." << std::endl;
+		}
+
+		static void turnEnd() {
+			std::cout << "Your turn has ended" << std::endl;
+		}
+
+		static void characterCreationNameSelect() {
+			std::cout << "Please enter a Name: ";
+		}
+
+		static void characterRoleReturn(std::string name, std::string role) {
+			std::cout << "You are a " << role << std::endl;
+			std::cout << "Good Luck " << name << "!" << std::endl;
+		}
+
 };
