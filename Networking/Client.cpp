@@ -206,8 +206,10 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                         gameOver = true;
                     }
                     else{
-                        phase++;
+                        phase=VOTING;
                         std::cout << "The following person died tonight: " << result << std::endl;
+                        std::string temp;
+
                     }
                     client_answer[2] = WEREWOLVEKILL;
                     client_answer[3] = DONE;
@@ -243,6 +245,24 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             break;
             case EXECUTION:
             {
+                if(!(server_answer.length() <=3))
+                {
+                    std::string result = server_answer.substr(3);
+                    if(server_answer_cString[2]==id)
+                    {
+                        std::cout << "YOU DIED" << std::endl;
+                        gameOver = true;
+                    }
+                    else{
+                        phase=WEREWOLVEVOTING;
+                        std::cout << "The following person was executed: " << result << std::endl;
+                        std::string temp;
+
+                    }
+                    client_answer[2] = EXECUTION;
+                    client_answer[3] = DONE;
+                }
+                else requestAfterSleep(con);
                 std::string result = server_answer.substr(3);
                 phase = WEREWOLVEVOTING;
                 std::cout << "The following person was executed: " << result << std::endl;
@@ -250,21 +270,34 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             }
             break;
             case 9:
-            //not implemented yet / GAMEOVER
+            {
+                switch(server_answer_cString[1])
+                {
+                    case 1:
+                    std::cout << "The Werewolves have won!" << std::endl;    
+                    break;
+                    case 2:
+                    std::cout << "The Villagers have won!" << std::endl;
+                    break;
+                    case 3:
+                    std::cout << "The Narrator has won!" << std::endl;
+                    break;
+                }
+            }
             break;
         }
         if(!gameOver)
         {
-        auto write_handler = [this,con](error_code_t ec, size_t written)
-        {
-            if(!ec)
+            auto write_handler = [this,con](error_code_t ec, size_t written)
             {
-                this->listen_for_answer(con);
-            }
-        };
-        strcpy(con->buf,client_answer);
-        auto buf =boost::asio::buffer(con->buf,BUFFERLENGTH);
-        boost::asio::async_write(con->_sock,buf,write_handler);
+                if(!ec)
+                {
+                    this->listen_for_answer(con);
+                }
+            };
+            strcpy(con->buf,client_answer);
+            auto buf =boost::asio::buffer(con->buf,BUFFERLENGTH);
+            boost::asio::async_write(con->_sock,buf,write_handler);
         }else
         {
             auto write_handler = [this,con](error_code_t ec, size_t written)

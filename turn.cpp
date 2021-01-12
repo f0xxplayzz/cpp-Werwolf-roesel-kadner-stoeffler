@@ -11,6 +11,7 @@ class Game {
 	public:
 	int werewolveCount;
 	bool gameOver = false;
+	char winCondition;
 
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> villagers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
@@ -32,16 +33,19 @@ class Game {
 			//Gewinnbedingung f�r die Werw�lfe: kein Dorfbewohner lebt mehr.
 			std::cout << "The Werewolves have won!" << std::endl;
 			gameOver = true;
+			winCondition=1;
 		}
 		if (werewolves->size() == 0  && (villagers->size()!=0 || !seers->empty())) {
 			//Gewinnbedingung f�r die Dorfbewohner: Alle Werw�lfe sind tot.
 			std::cout << "The Villagers have won!" << std::endl;
 			gameOver = true;
+			winCondition=2;
 		}
 		if (werewolves->size() == 0 && villagers->size() == 0) {
 			//Narrator win
 			std::cout << "The Narrator has won!" << std::endl;
 			gameOver = true;
+			winCondition=3;
 		}
 		
 	}
@@ -149,7 +153,6 @@ class Game {
 				mostVoted = i;
 			}
 		}
-		std::string * ptr;
 		return alivePlayers->at(mostVoted)->name;
 	}
 

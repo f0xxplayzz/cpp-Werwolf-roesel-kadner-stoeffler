@@ -10,6 +10,7 @@
 #define WEREWOLVEKILL 5
 #define VOTING 6
 #define EXECUTION 7
+#define GAMEOVER 9
 #define KILLED 1
 #define HEALED 2
 #define DO_NOTHING 3
@@ -341,6 +342,11 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             std::cout << "Changed Phase to VOTING" <<std::endl;
                             phaseCounter=0;
                             hostData->executeVotes();
+                            hostData->checkWinCondition();
+                            if(hostData->gameOver)
+                            {
+                                phase=GAMEOVER;
+                            }
                         }
                     }
                     break;
@@ -358,7 +364,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             Send Ids as chars
                             Send names as ONE string
                         */
-                         int iterator = 1;
+                        int iterator = 1;
                         for (int i = 0; i < hostData->alivePlayers->size();i++) 
                         {
                             if(hostData->alivePlayers->at(i)->id != client_answer_cstring[0])
@@ -383,16 +389,16 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     case DONE:
                     {
                         for(std::shared_ptr<Player> p : *hostData->alivePlayers.get())
-                            if(p->id=client_answer_cstring[5])
+                            if(p->id==client_answer_cstring[5])
                                 p->voteCounter++;
                         phaseCounter++;
+                        server_answer += VOTING;
                         if(phaseCounter>=hostData->alivePlayers->size())
                         {
                             phase=EXECUTION;
                             std::cout << "Changed phase to EXECUTION" <<std::endl;
                             phaseCounter=0;
                         }
-                        server_answer +=phase;
                     }
                     break;
                 }
@@ -400,26 +406,38 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             break;
             case EXECUTION:
             {
-                phaseCounter++;
-                int killedPlayerID = hostData->getMostVoted();
-                std::string killedPlayerName = "";
-                    server_answer += phase;
-                    server_answer += 1;
-                    server_answer += killedPlayerID;
-                    for(std::shared_ptr<Player> p : *hostData->alivePlayers)
+                switch(client_answer_cstring[3])
+                {
+                    case NOTDONE:
                     {
-                        if(killedPlayerID == p->id)
+                        char killedPlayerID = hostData->getMostVoted();
+                        server_answer = "";
+                        server_answer += phase;
+                        server_answer += 1;
+                        server_answer += killedPlayerID;
+                        std::string name = hostData->getMostVoted_name();
+                        server_answer += name;
+                        std::cout << server_answer << std::endl;
+                    }
+                    break;
+                    case DONE:
+                    {
+                        phaseCounter++;
+                        server_answer += phase;
+                        if(phaseCounter>=hostData->alivePlayers->size())
                         {
-                            killedPlayerName = p->name;
+                            phase=WEREWOLVEVOTING;
+                            std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
+                            phaseCounter=0;
+                            hostData->executeVotes();
+                            hostData->checkWinCondition();
+                            if(hostData->gameOver)
+                            {
+                                phase=GAMEOVER;
+                            }
                         }
                     }
-                    server_answer += killedPlayerName;
-                if(phaseCounter>=hostData->alivePlayers->size())
-                {
-                    phase=WEREWOLVEVOTING;
-                    std::cout << "Changed phase to WEREWOLVEVOTING" << std::endl;
-                    phaseCounter=0;
-                    hostData->executeVotes();
+                    break;
                 }
             }
             break;
@@ -434,7 +452,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
         auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
         boost::asio::async_write(con->_sock, buf, write_handler);
     }
-    else
+    else if(phase != GAMEOVER)
     {
         char* sleeping_msg = new char[1];
         sleeping_msg[0]=phase;
@@ -449,6 +467,22 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
         auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
         boost::asio::async_write(con->_sock, buf, write_handler);
     }
+    else
+    {
+        server_answer += GAMEOVER;
+        server_answer += hostData->winCondition;
+        auto write_handler = [this,con](error_code_t ec, size_t written) 
+        {
+            if (!ec)
+            {   
+                std::cout << "Closed a connection" << std::endl;
+            }
+        };
+        strcpy(con->buf,server_answer.c_str());
+        auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
+        boost::asio::async_write(con->_sock, buf, write_handler);
+    }
+    
 }
 
 void Server::listen_for_answer(std::shared_ptr<connection_t> con)
