@@ -11,6 +11,7 @@
 #define WEREWOLVEKILL 5
 #define VOTING 6
 #define EXECUTION 7
+#define GAMEOVER 9
 #define KILLED 1
 #define HEALED 2
 #define DO_NOTHING 3
@@ -122,10 +123,12 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                         std::cin >> temp;
                         vote = std::stoi(temp);
                     } while (!(vote>0) && !(vote<=ids.size()));
-                    char voted = ids.at(vote-1);
+                    char voted = ids[vote-1];
+                    std::cout << (int) voted <<std::endl;
                     client_answer[2] = phase;
                     phase = SEER;
                     client_answer[3] = DONE;
+                    client_answer[4] = 1;
                     client_answer[5] = voted;
                 }
                 else
@@ -134,8 +137,8 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     client_answer[3]=SKIPPED;
                     phase = SEER;
                 }
-                break;
             }
+            break;
             case WITCH:
             {
                 //not implemented yet
@@ -237,9 +240,10 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     std::cin >> temp;
                     vote = std::stoi(temp);
                 } while (!(vote>0 && vote<=ids.size()));
-                char voted = ids.at(vote -1);
+                char voted = ids[vote -1];
                 client_answer[2] = phase++;
                 client_answer[3] = DONE;
+                client_answer[4] = 1;
                 client_answer[5] = voted;
             }
             break;
@@ -256,21 +260,16 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
                     else{
                         phase=WEREWOLVEVOTING;
                         std::cout << "The following person was executed: " << result << std::endl;
-                        std::string temp;
-
                     }
                     client_answer[2] = EXECUTION;
                     client_answer[3] = DONE;
                 }
                 else requestAfterSleep(con);
-                std::string result = server_answer.substr(3);
-                phase = WEREWOLVEVOTING;
-                std::cout << "The following person was executed: " << result << std::endl;
-                std::cout << "The complete village falls asleep" << std::endl;
             }
             break;
             case 9:
             {
+                gameOver = true;
                 switch(server_answer_cString[1])
                 {
                     case 1:
@@ -327,6 +326,11 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
         std::cin;
         std::cout << std::endl;
         std::cout << "Closing Client" << std::endl;
+    }
+    else if(server_answer_cString[0]==GAMEOVER)
+    {
+        phase = GAMEOVER;
+        requestAfterSleep(con);
     }
     else
     {

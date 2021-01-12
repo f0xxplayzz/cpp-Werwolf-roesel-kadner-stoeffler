@@ -179,12 +179,15 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     Persons will be killed in the step WEREWOLVEKILL separetly
                 */
                 {
-                    std::cout <<"Received vote" << std::endl;
-                    for(std::shared_ptr<Player> p : *hostData->alivePlayers.get())
-                        if(p->id==client_answer_cstring[5])
+                    int voted = (int) client_answer_cstring[5];
+                    int lengthV = hostData->alivePlayers->size();
+                    for(int i = 0; i < lengthV;i++)
+                    {
+                        if(hostData->alivePlayers->at(i)->id == voted)
                         {
-                            p->voteCounter++;
+                            hostData->alivePlayers->at(i)->voteCounter++;
                         }
+                    }
                     phaseCounter++;
                     server_answer +=phase;
                     if(phaseCounter>=hostData->werewolves->size())
@@ -329,7 +332,6 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         server_answer += killedPlayerID;
                         std::string name = hostData->getMostVoted_name();
                         server_answer += name;
-                        std::cout << server_answer << std::endl;
                     }
                     break;
                     case DONE:
@@ -388,9 +390,13 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     break;
                     case DONE:
                     {
-                        for(std::shared_ptr<Player> p : *hostData->alivePlayers.get())
-                            if(p->id==client_answer_cstring[5])
-                                p->voteCounter++;
+                        for(int i = 0; i < hostData->alivePlayers->size();i++)
+                        {
+                            if(hostData->alivePlayers->at(i)->id== (int) client_answer_cstring[5])
+                            {
+                                hostData->alivePlayers->at(i)->voteCounter++;
+                            }
+                        }
                         phaseCounter++;
                         server_answer += VOTING;
                         if(phaseCounter>=hostData->alivePlayers->size())
@@ -417,14 +423,13 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                         server_answer += killedPlayerID;
                         std::string name = hostData->getMostVoted_name();
                         server_answer += name;
-                        std::cout << server_answer << std::endl;
                     }
                     break;
                     case DONE:
                     {
                         phaseCounter++;
                         server_answer += phase;
-                        if(phaseCounter>=hostData->alivePlayers->size())
+                        if(phaseCounter >= hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEVOTING;
                             std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
@@ -439,6 +444,12 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                     }
                     break;
                 }
+            }
+            break;
+            case GAMEOVER:
+            {
+                server_answer+=phase;
+                server_answer+=hostData->winCondition;
             }
             break;
         }
