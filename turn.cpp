@@ -4,57 +4,51 @@
 #include <string>
 #include "narrator.cpp"
 #include <iostream>
-#include "Roles/player.cpp"
+#include "player.cpp"
 
 
 class Game {
+	//current Status of a game is saved in this class
 	public:
 	int werewolveCount;
 	bool gameOver = false;
 
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> villagers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
-	std::shared_ptr<std::vector<std::shared_ptr<Player>>> werewolves = std::make_shared<std::vector<std::shared_ptr<Player>>>();
+	std::shared_ptr<std::vector<std::shared_ptr<Player>>> werewolves = std::make_shared<std::vector<std::shared_ptr<Player>>>(); //Players are deleted from their respective vectors as well when they die.
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> seers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> witches = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> deadPlayers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> diedThisCycle = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 
 	void checkWinCondition() {
-	/*
-		Author: Jan St�ffler
-		Description: Methode, welche �berpr�ft ob ein Sieg erreicht ist
-		Input: /
-		Output: /
-	*/
 
-		if (villagers->size() == werewolves->size() && villagers->size() != 0) {
-			//Gewinnbedingung f�r die Werw�lfe: kein Dorfbewohner lebt mehr.
-			std::cout << "The Werewolves have won!" << std::endl;
+		//Checks whether a team has won/lost. If both teams are dead the narrator wins.
+
+		if (villagers->size() + seers->size() == werewolves->size() && villagers->size() + seers->size() != 0) {
+			//If the amount of werewolves is equal to the amount of villagers, then the werewolves win.
+			Narrator nrt;
+			nrt.gameEndWerewolves();
 			gameOver = true;
 		}
-		if (werewolves->size() == 0  && (villagers->size()!=0 || !seers->empty())) {
-			//Gewinnbedingung f�r die Dorfbewohner: Alle Werw�lfe sind tot.
-			std::cout << "The Villagers have won!" << std::endl;
+		if (werewolves->size() == 0  && (villagers->size() != 0 || !seers->empty())) {
+			//If there are no werewolves anymore and someone from the villagers survived they win.
+			Narrator nrt;
+			nrt.gameEndVillager();
 			gameOver = true;
 		}
 		if (werewolves->size() == 0 && villagers->size() == 0) {
-			//Narrator win
-			std::cout << "The Narrator has won!" << std::endl;
+			//If no one is left alive, then the Narrator wins.
+			Narrator nrt;
+			nrt.gameEndDraw();
 			gameOver = true;
-		}
-		
-	}
-
-	void resetVotes() {
-		for (int i = 0; i < alivePlayers->size(); i++)
-		{
-			alivePlayers->at(i)->voteCounter = 0;
 		}
 		
 	}
 
 	void playerDeath(int id) {
+		//A players death is handled by their id.
+		//they are removed/added to the correct vectors.
 
 		std::shared_ptr<Player> tmpPlayer;
 
@@ -106,13 +100,9 @@ class Game {
 	}
 
 	void executeVotes() {
-	/*
-		Author: Jan St�ffler
-		Description: Methode, welche die Person t�tet, die von den meisten Werw�lfen gew�hlt wurde. Bei Gleichstand der Stimmen wird
-			die zuerst im Vector genannte Person get�tet.
-		Input: /
-		Output: /
-	*/
+		//executes the Player with the most votes. If there is a tie, then the Player that was first added into the game dies.
+		//All votes are reset at the same time.
+
 		int mostVoted = 0;
 		int mostVotes = 0;
 		for (int i = 0; i < alivePlayers->size();i++) {
@@ -123,49 +113,17 @@ class Game {
 			alivePlayers->at(i)->voteCounter = 0;
 		}
 		playerDeath(alivePlayers->at(mostVoted)->id);
-		//l�scht meist gevoteten Spieler aus dem vector Villagers
 	}
 
-	std::string toString(){
-		std::string temp = "";
-		temp += (char)werewolveCount;
-		temp += (char)gameOver;
-		std::string temp2 ="";
-		for (int i = 0; i < alivePlayers->size(); i++) {
-			temp2 += alivePlayers->at(i)->toString();
-		}
-		temp += temp2;
-		temp2 = "";
-		for (int i = 0; i < villagers->size(); i++) {
-			temp2 += villagers->at(i)->toString();
-		}
-		temp += temp2;
-		temp2 = "";
-		for (int i = 0; i < werewolves->size(); i++) {
-			temp2 += werewolves->at(i)->toString();
-		}
-		temp += temp2;
-		/*temp2 = "";
-		for (int i = 0; i < seers->size(); i++) {
-			temp2 += seers->at(i)->toString();
-		}
-		temp += temp2;*/
-		return temp;
-	}
 };
 
 void turnNight(std::shared_ptr<Game> game) {
-/*
-	Author: Jan St�ffler
-	Description: Methode, welche einen Nachtzyklus darstellt
-	Input: Game g
-	Output: /
-*/
-	//Narrator.startRound();
-	//night{
+	//A night is played through. All players wake up and do what they need to do. At least one Player will die.
+	
+	Narrator nrt;
 
 	for (int i = 0; i < game->alivePlayers->size(); i++) {
-		std::cout << game->alivePlayers->at(i)->name << " wakes up." << std::endl;
+		nrt.wakeUp(game->alivePlayers->at(i)->name);
 
 		if (game->alivePlayers->at(i)->role == 1) {
 
@@ -176,7 +134,14 @@ void turnNight(std::shared_ptr<Game> game) {
 			game->alivePlayers->at(i)->voteVision(game->alivePlayers);
 		}
 
-		std::cout<<"Dein Zug ist vorbei"<<std::endl;
+		nrt.fallAsleep(game->alivePlayers->at(i)->name);
+
+		std::string nothing;
+		std::cout << std::endl << std::endl << "Please enter 'y'";
+		do {
+			std::cin >> nothing;
+		} while (nothing != "y");
+
 		system("clear");
 	}
 
@@ -186,11 +151,14 @@ void turnNight(std::shared_ptr<Game> game) {
 }
 
 void turnDay(std::shared_ptr<Game> game) {
+	//All Players vote for the death of another Player.
+	//At least 1 Player will die.
+	Narrator nrt;
 
 	for (int i = 0; i < game->alivePlayers->size(); i++) {
-		std::cout << game->alivePlayers->at(i)->name << "s turn." << std::endl;
+		nrt.turnStart(game->alivePlayers->at(i)->name);
 		game->alivePlayers->at(i)->voteExecution(game->alivePlayers);
-		std::cout<<"Dein Zug ist vorbei"<<std::endl;
+		nrt.turnEnd();
 		system("clear");
 	}
 
