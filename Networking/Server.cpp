@@ -3,7 +3,7 @@
 #include "Utilities.hpp"
 #include "Definitions.hpp"
 #include "Networkmessaging/ServerMessages.hpp"
-
+#include <algorithm>
 
 class Server
 {
@@ -15,14 +15,15 @@ public:
     void write_join(std::shared_ptr<connection_t> con);
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void handle_answer(std::shared_ptr<connection_t> con);
+    void setPlayers(int i);
 private:
     Game* hostData;
     std::vector<char> roles;
     std::string join_messages;
     char phase;
     char phaseCounter;
-    char playerCount=4;
-    char idCounter = 1;
+    char playerCount;
+    char idCounter = 5;
     std::vector<std::shared_ptr<connection_t>> _connections;
     boost::asio::io_service _io_service;
     tcp::acceptor _acceptor;
@@ -32,15 +33,18 @@ private:
 
 Server::Server() : _io_service{}, _acceptor(this->_io_service)
 {
-    //testing Data
-    roles.push_back(1);
-    roles.push_back(2);
-    roles.push_back(3);
-    roles.push_back(1);
-    //testing Data
     phase = JOIN;
     join_messages = "";
     hostData = new Game();
+}
+
+void Server::setPlayers(int i)
+{
+    playerCount=i;
+    roles = roleDeploymentNetwork(i);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine e(seed);
+    std::shuffle(roles.begin(),roles.end(),e);
 }
 
 Server::~Server()
@@ -232,7 +236,7 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     case DONE:
                     {
                         phaseCounter++;
-                        server_answer +=phase;
+                        server_answer += SEER;
                         if(phaseCounter>=hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEKILL;
@@ -269,7 +273,7 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     case DONE:
                     {
                         phaseCounter++;
-                        server_answer = WEREWOLVEKILL;
+                        server_answer += WEREWOLVEKILL;
                         if(phaseCounter==hostData->alivePlayers->size()-1)
                         {
                             phase=VOTING;
@@ -404,6 +408,7 @@ void Server::write_join(std::shared_ptr<connection> con)
 
 int main()
 {
-    Server serv;
-    serv.start();
+    Server* serv = new Server();
+    serv->setPlayers(5);
+    serv->start();
 }

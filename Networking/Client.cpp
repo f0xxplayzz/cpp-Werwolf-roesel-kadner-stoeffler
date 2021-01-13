@@ -162,7 +162,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     std::string output = server_answer.substr(start);
                     std::cout << "Which persons role do you want to see:" << std::endl;
                     std::cout << output << std::endl;
-                    int vote = 0;
+                    int vote = 1;
                     //vote now
                     do
                     {
@@ -170,7 +170,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                         std::cin >> temp;
                         vote = std::stoi(temp);
                     } while (!(vote>0 && vote<=roles.size()));
-                    char result = roles.at(vote-1);
+                    int result = roles.at(vote-1);
                     std::cout << "The person was a " << roleAsString(result) <<std::endl;
                     //create answer
                     client_answer =  ClientMessages::createSeerCompleted(id,role);
@@ -193,6 +193,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 //if data is already accessible continue, else request Data
                 if(!(server_answer.length() <=3))
                 {
+                    phase=VOTING;
                     std::cout << "The seer falls asleep" << std::endl;
                     std::string result = server_answer.substr(3);
                     if(server_answer_cString[2]==id)
@@ -203,10 +204,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     }
                     else{
                         //Tell Player who died
-                        phase=VOTING;
                         std::cout << "The following person died tonight: " << result << std::endl;
-                        std::string temp;
-
                     }
                     //create answer so server knows how many people checked in
                     client_answer =  ClientMessages::createWerewolveKillCompleted(id,role);
@@ -223,6 +221,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 std::cout << "The complete village wakes up" << std::endl;
                 std::vector<char> ids;
                 //process Data
+                std::cout<<" "<<std::endl;
                 for(int i = 1;i <= server_answer_cString[1];i++)
                 {
                     ids.push_back(server_answer_cString[1+i]);
@@ -232,8 +231,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 std::string output = server_answer.substr(start);
                 std::cout << "The following people can be voted to be executed:" << std::endl;
                 std::cout << output << std::endl;
-                int vote = 0;
-                char result;
+                int vote = 1;
                 //vote now !!
                 do
                 {
@@ -241,7 +239,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     std::cin >> temp;
                     vote = std::stoi(temp);
                 } while (!(vote>0 && vote<=ids.size()));
-                char voted = ids.at(vote-1);
+                int voted = ids.at(vote-1);
                 phase = EXECUTION;
                 //creates answer, tells server who was voted
                 client_answer =  ClientMessages::createVoting(voted,id,role);
@@ -292,17 +290,18 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     case 3:
                     std::cout << "The Narrator has won!" << std::endl;
                     break;
+                    phase=10;
                 }
             }
             break;
         }
-        if(!gameOver)
+        if(!gameOver && phase != GAMEOVER)
         {
             STD_WRITE_HANDLER
             STD_ASYNC_WRITE(client_answer)
-        }else
+        }
+        else if(gameOver || phase==GAMEOVER)
         {
-            //Closes client ig gameOver==true
             auto write_handler = [this,con](error_code_t ec, size_t written)
             {   
                 if(!ec)
@@ -326,20 +325,12 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
         joined=true;
         requestAfterSleep(con);
     }
-    else if (server_answer_cString[0]==9)
-    {
-        std::cout << "YOU DIED" << std::endl;
-        std::cout << "Closing Client" << std::endl;
-        INPUT_BEFORE_CLOSE
-    }
-    else if(server_answer_cString[0]==GAMEOVER)
-    {
-        //set phase of client to gameover
-        phase = GAMEOVER;
-        requestAfterSleep(con);
-    }
     else
     {
+        if(server_answer_cString[0]==GAMEOVER)
+        {
+            phase=GAMEOVER;
+        }
         requestAfterSleep(con);
     }
      

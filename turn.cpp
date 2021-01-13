@@ -48,6 +48,7 @@ class Game {
 		}
 		
 	}
+
 	
 	void emptyDiedThisCycle () {
 		while (!diedThisCycle->empty())
