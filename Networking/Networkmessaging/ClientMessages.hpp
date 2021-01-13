@@ -39,8 +39,8 @@ char* createSkipMessage(char id, char role, char phase)
         STD_HEADER
         res[2] = phase;
         res[3] = SKIPPED;
-        res[4] = 0;
-        res[5] = 0;
+        res[4] = '#';
+        res[5] = '#';
         return res;
     }
 char* createSeerCompleted(char id, char role)
@@ -52,8 +52,8 @@ char* createSeerCompleted(char id, char role)
         STD_HEADER
         res[2]=SEER;
         res[3]=DONE;
-        res[4] = 0;
-        res[5] = 0;
+        res[4] = '#';
+        res[5] = '#';
         return res;
     }
 char* createWerewolveKillCompleted(char id, char role)
@@ -64,8 +64,8 @@ char* createWerewolveKillCompleted(char id, char role)
        STD_HEADER
        res[2] = WEREWOLVEKILL;
        res[3] = DONE;
-       res[4] = 0;
-        res[5] = 0;
+       res[4] = '#';
+       res[5] = '#';
        return res;
     }
 char* createVoting( char voted, char id, char role)
@@ -79,6 +79,7 @@ char* createVoting( char voted, char id, char role)
         res[3] = DONE;
         res[4] = 1;
         res[5] = voted;
+        std::cout<<"Sended voting ballot" << std::endl;
         return res;
     }
 char* createExecutionCompleted(char id, char role)
@@ -89,8 +90,8 @@ char* createExecutionCompleted(char id, char role)
         STD_HEADER
         res[2] = EXECUTION;
         res[3] = DONE;
-        res[4] = 0;
-        res[5] = 0;
+        res[4] = '#';
+        res[5] = '#';
         return res;
     }
 char* createDataRequest(char id, char role, char phase)
@@ -101,8 +102,8 @@ char* createDataRequest(char id, char role, char phase)
         STD_HEADER
         res[2] = phase;
         res[3] = NOTDONE;
-        res[4] = 0;
-        res[5] = 0;
+        res[4] = '#';
+        res[5] = '#';
         return res;
     }
 char* createJoinMessage(std::string name, char id, char role)
