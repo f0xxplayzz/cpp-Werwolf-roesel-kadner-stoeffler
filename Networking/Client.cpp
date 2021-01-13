@@ -307,10 +307,14 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
             {   
                 if(!ec)
                 {
-                    std::cout << "Closing Client" << std::endl;
-                    INPUT_BEFORE_CLOSE
+                    phase = GAMEOVER;
+                    listen_for_answer(con);
                 }
             };
+            client_answer = new char[16];
+            ClientMessages::createStdHeader(client_answer,role,id);
+            client_answer[2]=phase;
+            client_answer[3]= NOTDONE;
             STD_ASYNC_WRITE(client_answer)
         }
     }

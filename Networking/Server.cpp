@@ -96,6 +96,7 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                 {
                     case VILLAGER_ROLE:
                     hostData->villagers->push_back(p);
+                    break;
                     case WEREWOLVE_ROLE:
                     hostData->werewolves->push_back(p);
                     break;
@@ -147,7 +148,7 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     }
                     phaseCounter++;
                     server_answer +=phase;
-                    if(phaseCounter>=hostData->werewolves->size())
+                    if(phaseCounter>=hostData->alivePlayers->size())
                     {
                         phase = SEER;
                         std::cout << "Changed Phase to SEER" << std::endl;
@@ -268,8 +269,8 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     case DONE:
                     {
                         phaseCounter++;
-                        server_answer += phase;
-                        if(phaseCounter==hostData->alivePlayers->size())
+                        server_answer = WEREWOLVEKILL;
+                        if(phaseCounter==hostData->alivePlayers->size()-1)
                         {
                             phase=VOTING;
                             std::cout << "Changed Phase to VOTING" <<std::endl;
@@ -335,7 +336,7 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     {
                         phaseCounter++;
                         server_answer += EXECUTION;
-                        if(phaseCounter >= hostData->alivePlayers->size())
+                        if(phaseCounter >= hostData->alivePlayers->size()-1)
                         {
                             phase=WEREWOLVEVOTING;
                             std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
@@ -375,7 +376,7 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
         {
             if (!ec)
             {   
-                std::cout << "Closed a connection" << std::endl;
+                listen_for_answer(con);
             }
         };
         STD_ASYNC_WRITE(server_answer.c_str())
