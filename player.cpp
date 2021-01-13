@@ -6,9 +6,7 @@
 #include <memory>
 #include "narrator.cpp"
 #include "utils/VectorUtils.hpp"
-#include "Roles/villager.cpp"
-#include "Roles/werewolve.cpp"
-#include "Roles/seer.cpp"
+
 
 class Player {
 	public:
