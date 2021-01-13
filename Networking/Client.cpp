@@ -13,7 +13,7 @@ class Client
     void start();
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void receive_join(std::shared_ptr<connection_t> con);
-    void handle_server_answer(std::shared_ptr<connection_t> con);
+    void handle_answer(std::shared_ptr<connection_t> con);
     void handle_write(std::shared_ptr<connection_t> con);
     void handle_accept(error_code_t ec,std::shared_ptr<connection_t> con);
     void goSleeping();
@@ -77,7 +77,7 @@ void Client::requestAfterSleep(std::shared_ptr<connection_t> con)
     STD_ASYNC_WRITE(message)
 }
 
-void Client::handle_server_answer(std::shared_ptr<connection_t> con)
+void Client::handle_answer(std::shared_ptr<connection_t> con)
 {
     /*
         Processes Server-Answer and creates an answer if needed
@@ -384,7 +384,7 @@ void Client::receive_join(std::shared_ptr<connection_t> con)
     } while (name.length()>10);
     phase=WEREWOLVEVOTING;
     STD_WRITE_HANDLER
-    char* join_msg =  createJoinMessage(name,id,role);
+    char* join_msg = ClientMessages::createJoinMessage(name,id,role);
     STD_ASYNC_WRITE(join_msg)
 }
 //main will be moved soon

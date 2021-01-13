@@ -34,4 +34,4 @@
         std::string temp;\
         std::cin >> temp;
 
-#define STD_HEADER char* res = new char[16];createStdHeader(res,id,roleST);
+#define STD_HEADER char* res = new char[16];createStdHeader(res,id,role);

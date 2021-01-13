@@ -14,7 +14,7 @@ public:
     void handle_accept(error_code_t ec, std::shared_ptr<connection_t> con);
     void write_join(std::shared_ptr<connection_t> con);
     void listen_for_answer(std::shared_ptr<connection_t> con);
-    void handle_client_answer(std::shared_ptr<connection_t> con);
+    void handle_answer(std::shared_ptr<connection_t> con);
 private:
     Game* hostData;
     std::vector<char> roles;

@@ -41,7 +41,7 @@ namespace ServerMessages
         }
         result += WEREWOLVEVOTING;
         result += (char) ids.size();
-        for(int i=0;i<id_vector.size();i++)
+        for(int i=0;i<ids.size();i++)
         {
             result += ids.at(i);
         }
@@ -67,9 +67,9 @@ namespace ServerMessages
         }
         result += SEER;
         result += (char) roles.size();
-        for(int i=0;i<role_vector.size();i++)
+        for(int i=0;i<roles.size();i++)
         {
-            result += role_vector.at(i);
+            result += roles.at(i);
         }
         result += result2;
         return result;
@@ -102,7 +102,7 @@ namespace ServerMessages
         }
         result += VOTING;
         result += (char) ids.size();
-        for(int i=0;i<id_vector.size();i++)
+        for(int i=0;i<ids.size();i++)
         {
             result += ids.at(i);
         }
