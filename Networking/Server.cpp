@@ -1,22 +1,9 @@
 #include "tcp_connection.hpp"
 #include "./../turn.cpp"
 #include "Utilities.hpp"
+#include "Definitions.hpp"
+#include "Networkmessaging/ServerMessages.hpp"
 
-
-#define JOIN 1
-#define WEREWOLVEVOTING 2
-#define WITCH 3
-#define SEER 4
-#define WEREWOLVEKILL 5
-#define VOTING 6
-#define EXECUTION 7
-#define GAMEOVER 9
-#define KILLED 1
-#define HEALED 2
-#define DO_NOTHING 3
-#define NOTDONE 1
-#define DONE 2
-#define SKIPPED 3
 
 class Server
 {
@@ -28,7 +15,6 @@ public:
     void write_join(std::shared_ptr<connection_t> con);
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void handle_client_answer(std::shared_ptr<connection_t> con);
-
 private:
     Game* hostData;
     std::vector<char> roles;
@@ -40,7 +26,7 @@ private:
     std::vector<std::shared_ptr<connection_t>> _connections;
     boost::asio::io_service _io_service;
     tcp::acceptor _acceptor;
-    tcp::endpoint _endpoint{tcp::v4(), 8999};
+    tcp::endpoint _endpoint{tcp::v4(), std::stoi(PORT)};
     std::unique_ptr<std::thread> _thread;
 };
 
@@ -84,11 +70,11 @@ void Server::handle_accept(error_code_t ec, std::shared_ptr<connection_t> con)
     }
 }
 
-void Server::handle_client_answer(std::shared_ptr<connection_t> con)
+void Server::handle_answer(std::shared_ptr<connection_t> con)
 {
     std::string client_answer = con->buf;
     char* client_answer_cstring = to_cString(client_answer);
-    std::string server_answer = "" ;
+    std::string server_answer = "";
     std::string result = "";
     std::vector<char> id_vector;
     std::vector<char> role_vector;
@@ -100,7 +86,6 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             {
                 char id = client_answer_cstring[0];
                 std::string name = client_answer.substr(6);
-                //createPlayer method verwenden
                 std::shared_ptr<Player> p = std::make_shared<Player>();
                 p->alive=true;
                 p->role=client_answer_cstring[1];
@@ -109,28 +94,19 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 hostData->alivePlayers->push_back(p);
                 switch(client_answer_cstring[1])
                 {
-                    case 1:
+                    case VILLAGER_ROLE:
                     hostData->villagers->push_back(p);
-                    case 2:
+                    case WEREWOLVE_ROLE:
                     hostData->werewolves->push_back(p);
                     break;
-                    case 3:
+                    case SEER_ROLE:
                     hostData->seers->push_back(p);
                     break;
-                    case 4:
+                    case WITCH_ROLE:
                     hostData->witches->push_back(p);
                     break;
                 }
-                server_answer = "";
-                server_answer += phase;
-                server_answer += "Joined the game as ";
-                server_answer += name;
-                join_messages += name;
-                join_messages += " joined the game" ;
-                join_messages += '\n' ;
-                server_answer += '\n' ;
-                server_answer += join_messages ;
-                std::cout << name << " joined the game"<<std::endl;
+                server_answer = ServerMessages::createJoin(phase,name);
                 if(hostData->alivePlayers->size()>=playerCount)
                 {
                     phaseCounter=0;
@@ -151,26 +127,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
 
                         Get Information or Implementation from player.cpp
                     */
-                    int iterator = 1;
-			        for (int i = 0; i < hostData->alivePlayers->size();i++) 
-                    {
-                        if(hostData->alivePlayers->at(i)->role != 2)
-                        {
-                            result += std::to_string(iterator++); 
-                            result += ".) ";
-                            result += hostData->alivePlayers->at(i)->name;
-                            result += '\n';
-                            id_vector.push_back(hostData->alivePlayers->at(i)->id);
-                        }
-			        }
-                    server_answer= "";
-                    server_answer += phase;
-                    server_answer += (char) id_vector.size();
-                    for(int i=0;i<id_vector.size();i++)
-                    {
-                        server_answer += id_vector.at(i);
-                    }
-                    server_answer += result;
+                    server_answer = ServerMessages::createWerewolveVoting(hostData);
                 }
                 break;
                 case DONE:
@@ -268,31 +225,11 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             send IDs as chars
                             send names as ONE String
                         */
-                        int iterator = 1;
-                        for (int i = 0; i < hostData->alivePlayers->size(); i++) 
-                        {
-				            if (hostData->alivePlayers->at(i)->role != 3 ) 
-                            {
-                                result += std::to_string(iterator++);
-                                result += "). ";
-                                result += hostData->alivePlayers->at(i)->name;
-                                result += '\n';
-					            role_vector.push_back(hostData->alivePlayers->at(i)->role);
-				            }
-                        }
-                        server_answer= "";
-                        server_answer += phase;
-                        server_answer += (char) role_vector.size();
-                        for(int i=0;i<role_vector.size();i++)
-                        {
-                            server_answer += role_vector.at(i);
-                        }
-                        server_answer += result;
+                        server_answer = ServerMessages::createSeer(hostData);
                     }
                     break;
                     case DONE:
                     {
-                        std::cout << "Seer has chosen" << std::endl;
                         phaseCounter++;
                         server_answer +=phase;
                         if(phaseCounter>=hostData->alivePlayers->size())
@@ -325,20 +262,14 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 {
                     case NOTDONE:
                     {
-                        char killedPlayerID = hostData->getMostVoted();
-                        server_answer = "";
-                        server_answer += phase;
-                        server_answer += 1;
-                        server_answer += killedPlayerID;
-                        std::string name = hostData->getMostVoted_name();
-                        server_answer += name;
+                        server_answer = ServerMessages::createWerewolveKill(hostData);
                     }
                     break;
                     case DONE:
                     {
                         phaseCounter++;
                         server_answer += phase;
-                        if(phaseCounter>=hostData->alivePlayers->size())
+                        if(phaseCounter==hostData->alivePlayers->size())
                         {
                             phase=VOTING;
                             std::cout << "Changed Phase to VOTING" <<std::endl;
@@ -366,26 +297,7 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                             Send Ids as chars
                             Send names as ONE string
                         */
-                        int iterator = 1;
-                        for (int i = 0; i < hostData->alivePlayers->size();i++) 
-                        {
-                            if(hostData->alivePlayers->at(i)->id != client_answer_cstring[0])
-                            {
-                                result += std::to_string(iterator++); 
-                                result += ".) ";
-                                result += hostData->alivePlayers->at(i)->name;
-                                result += '\n';
-                                id_vector.push_back(hostData->alivePlayers->at(i)->id);
-                            }
-                        }
-                        server_answer = "";
-                        server_answer += VOTING;
-                        server_answer += (char) id_vector.size();
-                        for(int i=0;i<id_vector.size();i++)
-                        {
-                            server_answer += id_vector.at(i);
-                        }
-                        server_answer += result;
+                        server_answer = ServerMessages::createVoting(hostData, client_answer_cstring[0]);
                     }
                     break;
                     case DONE:
@@ -416,19 +328,13 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 {
                     case NOTDONE:
                     {
-                        char killedPlayerID = hostData->getMostVoted();
-                        server_answer = "";
-                        server_answer += phase;
-                        server_answer += 1;
-                        server_answer += killedPlayerID;
-                        std::string name = hostData->getMostVoted_name();
-                        server_answer += name;
+                        server_answer = ServerMessages::createExecution(hostData);
                     }
                     break;
                     case DONE:
                     {
                         phaseCounter++;
-                        server_answer += phase;
+                        server_answer += EXECUTION;
                         if(phaseCounter >= hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEVOTING;
@@ -448,40 +354,23 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
             break;
             case GAMEOVER:
             {
-                server_answer+=phase;
-                server_answer+=hostData->winCondition;
+                server_answer = ServerMessages::createGameover(hostData);
             }
             break;
         }
-        strcpy(con->buf, server_answer.c_str());
-        auto write_handler = [this,con](error_code_t ec, size_t written) {
-            if (!ec)
-            {
-                listen_for_answer(con);
-            }
-        };
-        auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
-        boost::asio::async_write(con->_sock, buf, write_handler);
+        STD_WRITE_HANDLER
+        STD_ASYNC_WRITE(server_answer.c_str())
     }
     else if(phase != GAMEOVER)
     {
         char* sleeping_msg = new char[1];
         sleeping_msg[0]=phase;
-        auto write_handler = [this,con](error_code_t ec, size_t written) 
-        {
-            if (!ec)
-            {   
-                listen_for_answer(con);
-            }
-        };
-        strcpy(con->buf,sleeping_msg);
-        auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
-        boost::asio::async_write(con->_sock, buf, write_handler);
+        STD_WRITE_HANDLER
+        STD_ASYNC_WRITE(sleeping_msg)
     }
     else
     {
-        server_answer += GAMEOVER;
-        server_answer += hostData->winCondition;
+        server_answer = ServerMessages::createGameover(hostData);
         auto write_handler = [this,con](error_code_t ec, size_t written) 
         {
             if (!ec)
@@ -489,47 +378,26 @@ void Server::handle_client_answer(std::shared_ptr<connection_t> con)
                 std::cout << "Closed a connection" << std::endl;
             }
         };
-        strcpy(con->buf,server_answer.c_str());
-        auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
-        boost::asio::async_write(con->_sock, buf, write_handler);
+        STD_ASYNC_WRITE(server_answer.c_str())
     }
     
 }
 
 void Server::listen_for_answer(std::shared_ptr<connection_t> con)
 {
-    auto read_handler = [this, con](error_code_t ec, size_t read)
-    {
-        if(!ec)
-        {
-            this->handle_client_answer(con);
-        }else
-        {
-            std::cout << ec.message() << std::endl;
-        } 
-    };
-    auto buf = boost::asio::buffer(con->buf, BUFFERLENGTH);
-    boost::asio::async_read(con->_sock, buf, read_handler);
+    STD_READ_HANDLER
+    STD_ASYNC_READ
 }
 
 void Server::write_join(std::shared_ptr<connection> con)
 {
-    auto write_handler = [this, con](error_code_t ec, size_t written) {
-        if (!ec)
-        {
-            std::cout << "Message of " << written << "bytes written!" << std::endl;
-            listen_for_answer(con);
-        }
-    };
+    STD_WRITE_HANDLER
     char* msg = new char [BUFFERLENGTH];
     msg[0] = idCounter++;
     std::cout << "Client connected with ID: "<< (int) msg[0] <<std::endl;
     msg[1] = roles.at(roles.size()-1);
     roles.pop_back();
-    strcpy(con->buf,msg);
-    std::cout << con->buf << std::endl;
-    auto joinbuf = boost::asio::buffer(con->buf, BUFFERLENGTH);
-    boost::asio::async_write(con->_sock, joinbuf, write_handler);
+    STD_ASYNC_WRITE(msg)
 }
 
 

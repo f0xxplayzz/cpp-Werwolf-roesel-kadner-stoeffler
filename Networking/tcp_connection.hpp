@@ -4,11 +4,10 @@
 #include <iostream>
 #include <thread>
 #include <stdio.h>
+#include "Definitions.hpp"
 
 using tcp = boost::asio::ip::tcp;
 using error_code_t = boost::system::error_code;
-
-#define BUFFERLENGTH 500
 
 typedef struct connection
 {
