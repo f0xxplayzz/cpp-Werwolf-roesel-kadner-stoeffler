@@ -5,6 +5,9 @@
 #include <iostream>
 #include <memory>
 #include "narrator.cpp"
+#include "utils/VectorUtils.hpp"
+
+
 
 class Player {
 	public:
@@ -19,30 +22,6 @@ class Player {
 		bool alive = true;
 		int voteCounter;
 		//bool isMayor;
-		//Game currentGame;
-		void voteExecution();
-		std::string toString(){
-			std::string temp = "";
-			temp += name;
-			temp += '?';
-			char c = voteCounter;
-			temp += c;
-
-			return temp; 
-		}
-
-	//UTILS
-	bool intInVector (int inputInt, std::vector<int> inputVector, bool output) {
-
-	output = false;
-
-	for (int i : inputVector) {
-		if (inputInt == i) {
-			output = true;
-		}
-	}
-	return output;
-}
 
 	//GENERAL
 	std::string showRole() {
@@ -53,23 +32,35 @@ class Player {
 		} else if (role == 3) {
 			return "Seer";
 		} else {
+			std::cout << "role not implemented in player.cpp::showRole" << std::endl;
 			throw "roleNotImplemented";
 		}	
 	}
 
+	std::string toString(){
+			std::string temp = "";
+			temp += name;
+			temp += '?';
+			char c = voteCounter;
+			temp += c;
+
+			return temp; 
+		}
+
 	void voteExecution(std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers) {
-		Narrator narrator;
-		narrator.voteExecutionPossibilities();
+		//prints the list of possible names and increases the vote-counter of the chosen Player.
+		Narrator nrt;
+		nrt.voteExecutionPossibilities();
 		int ownNumber = 0;
 		for (int i = 0; i < alivePlayers->size(); i++) {
 			if (name != alivePlayers->at(i)->name) {
-				std::cout << i+1 << ".) " << alivePlayers->at(i)->name << std::endl;
+				nrt.voteKillPossibilities(alivePlayers->at(i)->name, i+1);
 			} else {
 				ownNumber = i;
 			}
 			
 		}
-		narrator.voteExecutionChoice();
+		nrt.voteExecutionChoice();
 		int vote = 0;
 		do {
 			std::cin >> vote;
@@ -80,8 +71,11 @@ class Player {
 	}
 
 	//WEREWOLVE
-	void showOtherWerewolves(std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers){
+	void showOtherWerewolves(std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers) {
+		//Prints the other living Werewolves
 		if(role == 2){
+
+			Narrator nrt;
 
 			std::shared_ptr<std::vector<std::shared_ptr<Player>>> tmpList = std::make_shared<std::vector<std::shared_ptr<Player>>>();;
 			
@@ -91,29 +85,32 @@ class Player {
 				}
 			}
 
-			std::cout<<"Die anderen Werwölfe sind: ";
-
+			nrt.showOtherWerewolvesStart();
+			
 			for (int i = 0; i < alivePlayers->size(); i++) {
 				if (id != alivePlayers->at(i)->id && alivePlayers->at(i)->role == 2) {
-					std::cout << alivePlayers->at(i)->name << " ";
+					nrt.showOtherWerewolves(alivePlayers->at(i)->name);
 				}
 			}
 
 			std::cout<<std::endl;
 		}
 	}
+
 	void voteKill(std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers){
+		//The Werewolve can vote to kill another Player, that is not a werewolve.
 		if(role==2){
-			std::cout << "You can vote to kill one of the following players:" << std::endl;
+			Narrator nrt;
+			nrt.voteKillStart();
 			std::vector<int> werewolves;
 			for (int i = 0; i < alivePlayers->size();i++) {
 				if (alivePlayers->at(i)->role != 2) {
-					std::cout << i+1 << ".) " << alivePlayers->at(i)->name << std::endl;
+					nrt.voteKillPossibilities(alivePlayers->at(i)->name, i+1);
 				} else {
 					werewolves.push_back(i);
 				}				
 			}
-			std::cout << "Who do you want to kill? ";
+			nrt.voteKillDecision();
 			int vote = 0;
 			do {
 				std::cin >> vote;
@@ -122,59 +119,35 @@ class Player {
 			alivePlayers->at(vote)->voteCounter++;
 		}
 	}
-	int voteKill_network(std::vector<Player> villagers){
-		if(role==2){
-			std::cout << "Folgende Leute kannst du töten:" << std::endl;
-			int iterator = 1;
-			for (int i = 0; i < villagers.size();i++) {
-				std::cout << iterator << ".) " << villagers[i].name << std::endl;
-			}
-			std::cout << "Wen willst du töten? ";
-			int vote = 0;
-			do {
-			std::cin >> vote;
-			} while (!(vote > 0) && !(vote <= villagers.size()));
-			return villagers[vote - 1].id;
-		}
-	}
-
-	int voteKill_network_with_shared_ptr(std::shared_ptr<std::vector<std::shared_ptr<Player>>> villagers){
-		if(role==2){
-			std::cout << "Folgende Leute kannst du töten:" << std::endl;
-			int iterator = 1;
-			for (int i = 0; i < villagers->size();i++) {
-				std::cout << iterator << ".) " << villagers->at(i)->name << std::endl;
-			}
-			std::cout << "Wen willst du töten? ";
-			int vote = 0;
-			do {
-			std::cin >> vote;
-			} while (!(vote > 0) && !(vote <= villagers->size()));
-			return villagers->at(vote - 1)->id;
-		}
-	}
 
 	//SEER
 	void voteVision(std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers) {
+		//Night of the seer.
 		if (role == 3) {
-			std::cout << "You can see the role of one of the following players:" << std::endl;
+			Narrator nrt;
+			nrt.voteSeerStart();
 			int ownNumber = 0;
 			for (int i = 0; i < alivePlayers->size(); i++) {
 				if (id != alivePlayers->at(i)->id) {
-					std::cout << i+1 << ".) " << alivePlayers->at(i)->name << std::endl;
+					nrt.voteSeerPossibilities(alivePlayers->at(i)->name, i+1);
 				} else {
 					ownNumber = i;
 				}
 				
 			}
-			std::cout << "Which player do you want to investigate? ";
+			nrt.voteSeerDecision();
 			int vote = 0;
 			do {
 				std::cin >> vote;
 				vote--;
 			} while (!( (vote >= 0) && (vote < alivePlayers->size()) && vote != ownNumber) );
 
-			std::cout << alivePlayers->at(vote)->name << " is a " << alivePlayers->at(vote)->showRole() << "!" << std::endl;
+			nrt.voteSeerResult(alivePlayers->at(vote)->name, alivePlayers->at(vote)->showRole());
+			std::string nothing;
+			std::cout << std::endl << std::endl << "Do you know which role they are? (if yes, enter 'y' if not please read above)";
+			do {
+				std::cin >> nothing;
+			} while (nothing != "y");
 		}
 	}
 };

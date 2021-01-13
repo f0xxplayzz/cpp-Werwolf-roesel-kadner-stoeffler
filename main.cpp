@@ -5,8 +5,12 @@
 #include "string.h"
 #include <memory>
 #include "utils/CppRandom.hpp"
+#include "utils/VectorUtils.hpp"
 
 bool nameAlreadyUsed (std::shared_ptr<Game> game, std::string name, bool output) {
+
+	//checks whether the given name is already used by another Player.
+	//This function should only be used before anyone can die.
 
 	output = false;
 
@@ -22,31 +26,37 @@ bool nameAlreadyUsed (std::shared_ptr<Game> game, std::string name, bool output)
 
 std::shared_ptr<Player> createPlayer (std::shared_ptr<Game> game, int role) {
 
+	//Creates an object for a new Player, it needs to know which "role" should be assigned.
+	
+	Narrator nrt;
+
 	std::shared_ptr<Player> outputPlayer = std::make_shared<Player>();
 	std::string name = "";
 
-	std::cout << "Please enter a Name: ";
+	nrt.characterCreationNameSelect();
 	do {
-		std::cin >> name;
+		std::cin >> name; //can't create another Player with the same name in 1 game
 	} while (nameAlreadyUsed(game, name, true));
 
 	outputPlayer->name = name;
 	outputPlayer->role = role;
 	outputPlayer->alive = true;
 	outputPlayer->voteCounter = 0;
-	//outputPlayer->currentGame = *game;
 
-	std::cout << "You are a " << outputPlayer->showRole() << std::endl;
-	std::cout << "Good Luck " << name << "!" << std::endl;
+	nrt.characterRoleReturn(outputPlayer->name, outputPlayer->showRole());
 
 	std::string nothing;
 	std::cout << std::endl << std::endl << "Do you know which role you are? (if yes, enter 'y' if not please read above)";
-	std::cin >> nothing;
+	do {
+		std::cin >> nothing;
+	} while (nothing != "y");
 	system("clear");
 	return outputPlayer;
 }
 
 std::shared_ptr<Player> createVillager (std::shared_ptr<Game> game) {
+	//Adds the Pointer to the correct vectors in "game"
+
 	std::shared_ptr<Player> tmpPlayer = createPlayer(game, 1);
 	game->alivePlayers->push_back(tmpPlayer);
 	game->villagers->push_back(tmpPlayer);
@@ -54,6 +64,8 @@ std::shared_ptr<Player> createVillager (std::shared_ptr<Game> game) {
 }
 
 std::shared_ptr<Player> createWerewolf (std::shared_ptr<Game> game) {
+	//see at CreateVillager
+
 	std::shared_ptr<Player> tmpPlayer = createPlayer(game, 2);
 	game->alivePlayers->push_back(tmpPlayer);
 	game->werewolves->push_back(tmpPlayer);
@@ -61,31 +73,23 @@ std::shared_ptr<Player> createWerewolf (std::shared_ptr<Game> game) {
 }
 
 std::shared_ptr<Player> createSeer (std::shared_ptr<Game> game) {
+	//see at CreateVillager
+
 	std::shared_ptr<Player> tmpPlayer = createPlayer(game, 3);
 	game->alivePlayers->push_back(tmpPlayer);
 	game->seers->push_back(tmpPlayer);
 	return tmpPlayer;
 }
 
-bool intInVector (int inputInt, std::vector<int> inputVector, bool output) {
-
-	output = false;
-
-	for (int i : inputVector) {
-		if (inputInt == i) {
-			output = true;
-		}
-	}
-	return output;
-}
-
 std::shared_ptr<Game> roleDeployment(int playerCount) {
+	//Creates x Players and gives them the correct amount of roles where x is "playerCount"
+
 	std::shared_ptr<Game> outputGame = std::make_shared<Game>();
 
-	std::vector<int> notVillagers;
+	std::vector<int> notVillagers; //all Players, that should not be created as Villagers.
 
 	//Which players are werewolves
-	int werewolveCount = playerCount / 4;
+	int werewolveCount = playerCount / 4; //acceptable amount of werewolves in relation to the players
 	std::vector<int> werewolves;
 	while (werewolveCount > werewolves.size()) {
 		int tmpNumber = GetRandomNumberBetween(0, playerCount - 1);
@@ -97,6 +101,8 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 	}
 
 	//Which players are seers
+	//currently only 1 Player is a seer when there are more than 4 Players. There shouldn't be a problem to create more than 1 seer but this was never tested
+	//with more Players you could make a new seer every 20 or so Players.
 	int seerCount = 0;
 	if (playerCount > 4) {
 		seerCount = 1;
@@ -112,7 +118,7 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 	}
 	
 
-	//Creation of the players
+	//Creation of the players with their respective roles. 
 	for (int i = 0; i < playerCount; i++)
 	{
 		std::shared_ptr<Player> tmpPlayer;
@@ -123,9 +129,7 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 		} else {
 			tmpPlayer = createVillager(outputGame);
 		}
-
-		tmpPlayer->id = i;
-
+		tmpPlayer->id = i; //A different id is given to each player
 	}
 
 	outputGame->werewolveCount = werewolveCount;
@@ -135,13 +139,21 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 }
 int main()
 {
-	//Game* mainGame = roleDeployment(playerCount);
-	std::shared_ptr<Game> mainGame = roleDeployment(10);
-	while (mainGame->gameOver == false) {
-		turnNight(mainGame);
-		if (mainGame->gameOver == false) {
-			turnDay(mainGame);
+	//(re-)starts the game for Hot-chair
+	
+	Narrator nrt;
+	std::string answer = "y";
+	do {
+		std::shared_ptr<Game> mainGame = roleDeployment(10);
+		nrt.gameStartVillage();
+		while (mainGame->gameOver == false) {
+			turnNight(mainGame);
+			if (mainGame->gameOver == false) {
+				turnDay(mainGame);
+			}
 		}
-	}
+		std::cout << "Do you want to play again? (Enter 'y' for yes otherwise enter anything else) "; 
+		std::cin >> answer;
+	} while (answer == "y");
 	
 }
