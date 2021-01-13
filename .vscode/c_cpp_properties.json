@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Win64",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\installation\\path\\include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.18362.0",
+            "cStandard": "c17",
+            "intelliSenseMode": "gcc-x86",
+            "compilerPath": "C:/Qt/Tools/mingw810_64/bin/g++.exe",
+            "cppStandard": "c++17",
+            "compilerArgs": [
+                "-pthread",
+                "-std=c++11"
+            ]
+        }
+    ],
+    "version": 4
+}
