@@ -124,6 +124,7 @@ void turnNight(std::shared_ptr<Game> game) {
 
 	for (int i = 0; i < game->alivePlayers->size(); i++) {
 		nrt.wakeUp(game->alivePlayers->at(i)->name);
+		nrt.deathsHung(game->diedThisCycle);
 
 		if (game->alivePlayers->at(i)->role == 1) {
 
@@ -144,6 +145,8 @@ void turnNight(std::shared_ptr<Game> game) {
 
 		system("clear");
 	}
+	
+	game->emptyDiedThisCycle();
 
 	game->executeVotes();
 	
@@ -157,10 +160,13 @@ void turnDay(std::shared_ptr<Game> game) {
 
 	for (int i = 0; i < game->alivePlayers->size(); i++) {
 		nrt.turnStart(game->alivePlayers->at(i)->name);
+		nrt.deathsKilled(game->diedThisCycle);
 		game->alivePlayers->at(i)->voteExecution(game->alivePlayers);
 		nrt.turnEnd();
 		system("clear");
 	}
+	
+	game->emptyDiedThisCycle();
 
 	game->executeVotes();
 
