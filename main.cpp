@@ -137,6 +137,7 @@ std::shared_ptr<Game> roleDeployment(int playerCount) {
 	return outputGame;
 	
 }
+
 int main()
 {
 	//(re-)starts the game for Hot-chair

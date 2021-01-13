@@ -20,7 +20,7 @@ class Game {
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> seers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> witches = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> deadPlayers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
-	std::shared_ptr<std::vector<std::shared_ptr<Player>>> diedThisCycle = std::make_shared<std::vector<std::shared_ptr<Player>>>();
+	std::shared_ptr<std::vector<std::string>> diedThisCycle = std::make_shared<std::vector<std::string>>();
 
 	void checkWinCondition() {
 		//Checks whether a team has won/lost. If both teams are dead the narrator wins.
@@ -48,7 +48,10 @@ class Game {
 		}
 		
 	}
-
+	void emptyDiedThisCycle()
+	{
+		diedThisCycle->clear();
+	}
 	void playerDeath(int id) {
 		//A players death is handled by their id.
 		//they are removed/added to the correct vectors.
