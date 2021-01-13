@@ -20,7 +20,7 @@ class Game {
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> seers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> witches = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> deadPlayers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
-	std::shared_ptr<std::vector<std::shared_ptr<Player>>> diedThisCycle = std::make_shared<std::vector<std::shared_ptr<Player>>>();
+	std::shared_ptr<std::vector<std::string>> diedThisCycle = std::make_shared<std::vector<std::string>>();
 
 	void checkWinCondition() {
 		//Checks whether a team has won/lost. If both teams are dead the narrator wins.
@@ -45,6 +45,15 @@ class Game {
 			nrt.gameEndDraw();
 			gameOver = true;
 			winCondition=3;
+		}
+		
+	}
+
+	
+	void emptyDiedThisCycle () {
+		while (!diedThisCycle->empty())
+		{
+			diedThisCycle->pop_back();
 		}
 		
 	}
@@ -153,6 +162,7 @@ void turnNight(std::shared_ptr<Game> game) {
 
 	for (int i = 0; i < game->alivePlayers->size(); i++) {
 		nrt.wakeUp(game->alivePlayers->at(i)->name);
+		nrt.deathsHung(game->diedThisCycle);
 
 		if (game->alivePlayers->at(i)->role == 1) {
 
@@ -173,6 +183,8 @@ void turnNight(std::shared_ptr<Game> game) {
 
 		system("CLS");
 	}
+	
+	game->emptyDiedThisCycle();
 
 	game->executeVotes();
 	
@@ -186,10 +198,13 @@ void turnDay(std::shared_ptr<Game> game) {
 
 	for (int i = 0; i < game->alivePlayers->size(); i++) {
 		nrt.turnStart(game->alivePlayers->at(i)->name);
+		nrt.deathsKilled(game->diedThisCycle);
 		game->alivePlayers->at(i)->voteExecution(game->alivePlayers);
 		nrt.turnEnd();
 		system("CLS");
 	}
+	
+	game->emptyDiedThisCycle();
 
 	game->executeVotes();
 

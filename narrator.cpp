@@ -59,6 +59,18 @@ class Narrator {
 		static void werewolfNightStart () {
 			std::cout << "The full moon can be seen, you have transformed into a werewolve." << std::endl;
 		}
+	
+		static void deathsKilled (std::shared_ptr<std::vector<std::string>> names) {
+			for (int i = 0; i < names->size(); i++) {
+				std::cout << " Unfortunately " << names->at(i) << " has been murdered." << std::endl;
+			}
+		}
+
+		static void deathsHung (std::shared_ptr<std::vector<std::string>> names) {
+			for (int i = 0; i < names->size(); i++) {
+				std::cout << names->at(i) << " has been hung." << std::endl;
+			}
+		}
 
 		static void seeerNightStart () {
 			std::cout << "You have awoken from your slumber." << std::endl;
