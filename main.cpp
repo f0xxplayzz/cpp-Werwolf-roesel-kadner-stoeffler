@@ -5,7 +5,7 @@ int main()
 	//(re-)starts the game for Hot-chair
 	Narrator nrt;
     std::string mode;
-    std::string choice = "0";  
+    std::string choice;  
 
     std::cout << "Welcome to Werewolf, press the associated Number for the mode you want to play!" << std::endl;
     std::cout << "1. Hotseat-Mode" << std::endl;
@@ -40,7 +40,7 @@ int main()
             std::cout << "Enter a number: ";
             std::cin >> choice;
         };
-        
+
     } else if (mode == "3") {
         std::cout << "Good bye!";
     }
