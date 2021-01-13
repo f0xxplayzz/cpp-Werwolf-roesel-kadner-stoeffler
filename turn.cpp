@@ -48,10 +48,16 @@ class Game {
 		}
 		
 	}
-	void emptyDiedThisCycle()
-	{
-		diedThisCycle->clear();
+
+	
+	void emptyDiedThisCycle () {
+		while (!diedThisCycle->empty())
+		{
+			diedThisCycle->pop_back();
+		}
+		
 	}
+
 	void playerDeath(int id) {
 		//A players death is handled by their id.
 		//they are removed/added to the correct vectors.
