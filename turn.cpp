@@ -181,7 +181,7 @@ void turnNight(std::shared_ptr<Game> game) {
 			std::cin >> nothing;
 		} while (nothing != "y");
 
-		system("clear");
+		system("CLS");
 	}
 	
 	game->emptyDiedThisCycle();
@@ -201,7 +201,7 @@ void turnDay(std::shared_ptr<Game> game) {
 		nrt.deathsKilled(game->diedThisCycle);
 		game->alivePlayers->at(i)->voteExecution(game->alivePlayers);
 		nrt.turnEnd();
-		system("clear");
+		system("CLS");
 	}
 	
 	game->emptyDiedThisCycle();
