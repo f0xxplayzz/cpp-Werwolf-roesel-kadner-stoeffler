@@ -3,19 +3,9 @@
 #include "Utilities.hpp"
 #include <stdio.h>
 #include <iostream>
-
-#define JOIN 1
-#define WEREWOLVEVOTING 2
-#define WITCH 3
-#define SEER 4
-#define WEREWOLVEKILL 5
-#define VOTING 6
-#define EXECUTION 7
-#define KILLED 1
-#define HEALED 2
-#define DO_NOTHING 3
-#define NOTDONE 1
-#define DONE 2
+#include "Definitions.hpp"
+#include "Makros.hpp"
+#include "Networkmessaging/ClientMessages.hpp"
 
 class Client
 {
@@ -23,150 +13,128 @@ class Client
     void start();
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void receive_join(std::shared_ptr<connection_t> con);
-    void handle_server_answer(std::shared_ptr<connection_t> con);
+    void handle_answer(std::shared_ptr<connection_t> con);
     void handle_write(std::shared_ptr<connection_t> con);
     void handle_accept(error_code_t ec,std::shared_ptr<connection_t> con);
     void goSleeping();
     void requestAfterSleep(std::shared_ptr<connection_t> con);
 
     private:
-    char* createDataRequest();
-    
 
     char phase;
     char id;
     char role;
     char name;
     bool gameOver = false;
+    bool joined =false;
 };
 
 
 void Client::start()
 {   
-        std::cout << "Starting Client" << std::endl;
-        boost::asio::io_service io_service;
-
-        auto connection = std::make_shared<connection_t>(io_service);
-
-        char buf[100];
-        boost::asio::ip::tcp::resolver resolver{io_service};
-        boost::asio::ip::tcp::resolver::query query(tcp::v4(),"127.0.0.1", "8999");
-        auto it = resolver.resolve(query);
-
-        auto read_handler2 = [this,connection](error_code_t e, size_t r) {
-            std::cout << "Answer:" << connection->buf << std::endl;
-        };
-
-        auto write_handler = [this,connection, read_handler2](error_code_t e, size_t r) {
-            if (!e)
-            {
-                std::cout << "Answer: " << connection->buf << std::endl;
-                std::cout << "Wait for the reaction!" << std::endl;
-                auto buf = boost::asio::buffer(connection->buf, 100);
-                boost::asio::async_read(connection->_sock, buf, read_handler2);
-            }
-        };
-
-        auto read_handler = [this,connection, write_handler](error_code_t e, size_t r) {
-            //überarbeiten
-            if (!e)
-            {
-                std::cout << "Content: " << connection->buf << std::endl;
-                std::cout << "Enter your answer: ";
-                std::string answer;
-                std::getline(std::cin, answer);
-                char cbuf[100];
-                strcpy(cbuf,answer.c_str());
-                auto buf = boost::asio::buffer(cbuf, 100);
-                boost::asio::async_write(connection->_sock, buf, write_handler);
-            }
-        };
-
         /*
-        auto conn_handler = [this,read_handler, connection](error_code_t ec,auto x) {
-            if (!ec)
-            {
-
-                auto bbuf = boost::asio::buffer(connection->buf, 100);
-                boost::asio::async_read(connection->_sock, bbuf, read_handler);
-            }
-        };
+            Starts the client and opens a connection to the Server
         */
-
+        boost::asio::io_service io_service;
+        auto connection = std::make_shared<connection_t>(io_service);
+        char buf[BUFFERLENGTH];
+        //Opening a resolver
+        boost::asio::ip::tcp::resolver resolver{io_service};
+        //resolve Server-Address
+        boost::asio::ip::tcp::resolver::query query(tcp::v4(), SERVER_IP, PORT);
+        auto it = resolver.resolve(query);
+        //Connect to Server
         boost::asio::async_connect(connection->_sock, it,[this,connection] (const boost::system::error_code &ec,auto x)
             {
                 this->handle_accept(ec,connection);
             });
-
+        //Multithreading is possible
         auto t = std::thread([&io_service]() { io_service.run(); });
         t.join();
-        std::cout << "Closing Client" << std::endl;
 }
 
 void Client::goSleeping()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    /*
+        Let the Thread which calls go sleeping for a while
+        Works on every OS since c++ std11
+    */
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEPINGTIME));
 }
 
 void Client::requestAfterSleep(std::shared_ptr<connection_t> con)
 {
+    /*
+        Lets the client sleep before he request Data from the Server again
+    */
+    //Go sleeping first
     goSleeping();
-    auto write_handler = [this,con](error_code_t ec,size_t written)
-        {
-            if(!ec)
-            {
-                this->listen_for_answer(con);
-            }
-        };
-    char* message = createDataRequest();
-    strcpy(con->buf,message);
-    auto buf =boost::asio::buffer(con->buf,100);
-    boost::asio::async_write(con->_sock,buf,write_handler);
+    //create a Write_Handler
+    STD_WRITE_HANDLER
+    //create the request
+    char* message =  ClientMessages::createDataRequest(id,role,phase);
+    //send the request
+    STD_ASYNC_WRITE(message)
 }
 
-void Client::handle_server_answer(std::shared_ptr<connection_t> con)
+void Client::handle_answer(std::shared_ptr<connection_t> con)
 {
+    /*
+        Processes Server-Answer and creates an answer if needed
+    */
+    //copy message in the scope
     std::string server_answer = con->buf;
+    //convert answer to a cstring
     char* server_answer_cString = to_cString(server_answer);
-    char* client_answer = new char[16];
-    client_answer[0]=id;
-    client_answer[1]=role;
-    if(phase=server_answer_cString[0])
+    //create a ptr for the answer
+    char* client_answer;
+    //if  client and server have the same phase go into the switch-case
+    if(phase==server_answer_cString[0])
     {
         switch(phase)
         {
             case WEREWOLVEVOTING:
             {
-                if(role==2)
+                /*
+                    Let the player vote to kill another player if he is a werewolve
+                */
+                std::cout << "The complete village falls asleep" << std::endl;
+                std::cout << "The Werewolves wake up" << std::endl;
+                if(role==WEREWOLVE_ROLE)
                 {
+                    //reads Data and processes it so the player can vote
                     std::vector<char> ids;
                     for(int i = 1;i <= server_answer_cString[1];i++)
                     {
                         ids.push_back(server_answer_cString[1+i]);
                     }
-                    int start = ids.size()+3;
-                    std::string output = server_answer.substr(start,server_answer.length()-start);
+                    int start = ids.size()+2;
+                    //create a substring to get voting possibilities as a string
+                    std::string output = server_answer.substr(start);
                     std::cout << "The following people can be killed:" << std::endl;
                     std::cout << output << std::endl;
                     int vote = 0;
                     char result;
+                    //Let the Player choose one Player to kill
                     do
                     {
-                        std::cin >> vote;
-                    } while (vote>0 && vote<ids.size());
-                    char voted = ids[vote];
-                    client_answer[2] = phase;
-                    phase = phase + 2;
-                    client_answer[3] = DONE;
-                    client_answer[5] = voted;
+                        std::string temp;
+                        std::cin >> temp;
+                        vote = std::stoi(temp);
+                    } while (!(vote>0) && !(vote<=ids.size()));
+                    char voted = ids[vote-1];
+                    //create the answer, ready to send
+                    client_answer =  ClientMessages::createWerewolveVoting(voted,id,role);
+                    phase = SEER;
                 }
                 else
                 { 
-                    phase = phase + 2;
-                    requestAfterSleep(con);
+                    //skips Voting-Event
+                    client_answer =  ClientMessages::createSkipMessage(id,role,phase);
+                    phase = SEER;
                 }
-                break;
             }
+            break;
             case WITCH:
             {
                 //not implemented yet
@@ -174,102 +142,201 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
             break;
             case SEER:
             {
-                if(role== SEER)
+                /*
+                    Let a player see the role of another player if he is a Seer
+                */
+                std::cout << "The Werewolves fall asleep" << std::endl;
+                std::cout << "The Seer wakes up" << std::endl;
+                //check if player is a seer
+                if(role==SEER_ROLE)
                 {
                     std::vector<char> roles;
+                    //process data from Server
                     int lengthV = (int) server_answer_cString[1];
                     for(int i = 1;i <= lengthV ;i++)
                         {
                             roles.push_back(server_answer_cString[1+i]);
                         }
-                    int start = roles.size()+3;
-                    std::string output = server_answer.substr(start,server_answer.length()-start);
+                    int start = roles.size()+2;
+                    //creates substring to get possibilities as a string
+                    std::string output = server_answer.substr(start);
                     std::cout << "Which persons role do you want to see:" << std::endl;
                     std::cout << output << std::endl;
                     int vote = 0;
+                    //vote now
                     do
                     {
-                        std::cin >> vote;
-                    } while (vote>0 && vote<roles.size());
-                    char result = roles[vote];
-                    std::string roleOutput;
-                    switch(result)
-                    {
-                        case 1:
-                        roleOutput = "Villager";
-                        break;
-                        case 2:
-                        roleOutput = "Werewolve";
-                        break;
-                        case 3:
-                        roleOutput = "Seer";
-                        break;
-                        case 4:
-                        roleOutput = "Witch";
-                    }
-                    std::cout << "The person was a " << roleOutput <<std::endl;
-                    client_answer[2] = phase++;
-                    client_answer[3] = DONE;
+                        std::string temp;
+                        std::cin >> temp;
+                        vote = std::stoi(temp);
+                    } while (!(vote>0 && vote<=roles.size()));
+                    char result = roles.at(vote-1);
+                    std::cout << "The person was a " << roleAsString(result) <<std::endl;
+                    //create answer
+                    client_answer =  ClientMessages::createSeerCompleted(id,role);
+                    phase= WEREWOLVEKILL;
                 }
                 else
-                {
-                    phase++;
-                    requestAfterSleep(con);
+                { 
+                    //Skip Event if player is no seer
+                    client_answer =  ClientMessages::createSkipMessage(id,role,phase);
+                    phase = WEREWOLVEKILL;
                 }
             }
             break;
             case WEREWOLVEKILL:
             {
-                std::string result = server_answer.substr(4,10);
-                phase++;
-                std::cout << "The following person died tonight: " << result << std::endl;
+                /*
+                    Execute the kill from the Wrewolves now
+                */
+                std::cout << server_answer << std::endl;
+                //if data is already accessible continue, else request Data
+                if(!(server_answer.length() <=3))
+                {
+                    std::cout << "The seer falls asleep" << std::endl;
+                    std::string result = server_answer.substr(3);
+                    if(server_answer_cString[2]==id)
+                    {
+                        //If Player died, tells him and closes the Client
+                        std::cout << "YOU DIED" << std::endl;
+                        gameOver = true;
+                    }
+                    else{
+                        //Tell Player who died
+                        phase=VOTING;
+                        std::cout << "The following person died tonight: " << result << std::endl;
+                        std::string temp;
+
+                    }
+                    //create answer so server knows how many people checked in
+                    client_answer =  ClientMessages::createWerewolveKillCompleted(id,role);
+                }
+                //requestData if it is not accessible yet
+                else requestAfterSleep(con);
             }
             break;
             case VOTING:
             {
+                /*
+                    Let the players execute another Player
+                */
+                std::cout << "The complete village wakes up" << std::endl;
                 std::vector<char> ids;
+                //process Data
                 for(int i = 1;i <= server_answer_cString[1];i++)
                 {
                     ids.push_back(server_answer_cString[1+i]);
                 }
-                int start = ids.size()+3;
-                std::string output = server_answer.substr(start,server_answer.length()-start);
+                int start = ids.size()+2;
+                //substr to see possibilities as a string
+                std::string output = server_answer.substr(start);
                 std::cout << "The following people can be voted to be executed:" << std::endl;
                 std::cout << output << std::endl;
                 int vote = 0;
                 char result;
+                //vote now !!
                 do
                 {
-                    std::cin >> vote;
-                } while (vote>0 && vote<ids.size());
-                char voted = ids[vote];
-                client_answer[2] = phase++;
-                client_answer[3] = DONE;
-                client_answer[5] = voted;
+                    std::string temp;
+                    std::cin >> temp;
+                    vote = std::stoi(temp);
+                } while (!(vote>0 && vote<=ids.size()));
+                char voted = ids.at(vote-1);
+                phase = EXECUTION;
+                //creates answer, tells server who was voted
+                client_answer =  ClientMessages::createVoting(voted,id,role);
             }
             break;
             case EXECUTION:
             {
-                std::string result = server_answer.substr(4,10);
-                phase = WEREWOLVEVOTING;
-                std::cout << "The following person was executed: " << result << std::endl;
+                /*
+                    Executes the most voted player
+                */
+                //if data is accessible continue, else request Data again
+                if(!(server_answer.length() <=3))
+                {
+                    //get name of executed person
+                    std::string result = server_answer.substr(3);
+                    if(server_answer_cString[2]==id)
+                    {
+                        //tell player if he died and close the Client
+                        std::cout << "YOU DIED" << std::endl;
+                        gameOver = true;
+                    }
+                    else
+                    {
+                        //tell player who died
+                        phase=WEREWOLVEVOTING;
+                        std::cout << "The following person was executed: " << result << std::endl;
+                    }
+                    //create answer so the Server knows who has checked in
+                    client_answer =  ClientMessages::createExecutionCompleted(id,role);
+                }
+                else requestAfterSleep(con);
+            }
+            break;
+            case GAMEOVER:
+            {
+                /*
+                    Tell player which winCondition was achieved
+                */
+                gameOver = true;
+                switch(server_answer_cString[1])
+                {
+                    case 1:
+                    std::cout << "The Werewolves have won!" << std::endl;    
+                    break;
+                    case 2:
+                    std::cout << "The Villagers have won!" << std::endl;
+                    break;
+                    case 3:
+                    std::cout << "The Narrator has won!" << std::endl;
+                    break;
+                }
             }
             break;
         }
-        auto write_handler = [this,con](error_code_t ec, size_t written)
+        if(!gameOver)
         {
-            if(!ec)
-            {
-                this->listen_for_answer(con);
-            }
-        };
-        strcpy(con->buf,client_answer);
-        auto buf =boost::asio::buffer(con->buf,100);
-        boost::asio::async_write(con->_sock,buf,write_handler);
+            STD_WRITE_HANDLER
+            STD_ASYNC_WRITE(client_answer)
+        }else
+        {
+            //Closes client ig gameOver==true
+            auto write_handler = [this,con](error_code_t ec, size_t written)
+            {   
+                if(!ec)
+                {
+                    phase = GAMEOVER;
+                    listen_for_answer(con);
+                }
+            };
+            client_answer = new char[16];
+            ClientMessages::createStdHeader(client_answer,role,id);
+            client_answer[2]=phase;
+            client_answer[3]= NOTDONE;
+            STD_ASYNC_WRITE(client_answer)
+        }
     }
-    else if (server_answer_cString[0]=9)
+    else if (server_answer_cString[0]== JOIN && joined == false)
     {
+        std::string out = server_answer.substr(1);
+        std::cout << out << std::endl;
+        //set flag, so client cant login a second time
+        joined=true;
+        requestAfterSleep(con);
+    }
+    else if (server_answer_cString[0]==9)
+    {
+        std::cout << "YOU DIED" << std::endl;
         std::cout << "Closing Client" << std::endl;
+        INPUT_BEFORE_CLOSE
+    }
+    else if(server_answer_cString[0]==GAMEOVER)
+    {
+        //set phase of client to gameover
+        phase = GAMEOVER;
+        requestAfterSleep(con);
     }
     else
     {
@@ -280,78 +347,53 @@ void Client::handle_server_answer(std::shared_ptr<connection_t> con)
 
 void Client::listen_for_answer(std::shared_ptr<connection_t> con)
 {
-    auto read_handler = [this,con](error_code_t ec , size_t read)
-        {
-            if(!ec)
-            {
-                this->handle_server_answer(con);
-            }else
-            {
-                std::cout << ec.message() << std::endl;
-            }
-        };
-    auto buf = boost::asio::buffer(con->buf,100);
-    boost::asio::async_read(con->_sock,buf,read_handler);
-    std::cout << "Listening for answer" << std::endl;
+    /*
+        Listens for answers
+    */
+    STD_READ_HANDLER
+    STD_ASYNC_READ
 }
 
 void Client::handle_accept(error_code_t ec,std::shared_ptr<connection_t> con)
 {
-    receive_join(con);
+    auto bbuf = boost::asio::buffer (con->buf,BUFFERLENGTH);
+    //special read_handler for joining phase
+    boost::asio::async_read(con->_sock,bbuf,[this,con](error_code_t ec,size_t)
+        {
+            if(!ec)
+            {
+                receive_join(con);
+            }
+        });
 }
 
 void Client::receive_join(std::shared_ptr<connection_t> con)
 {
+    /*
+        get all important Data from Server
+        send important Data back
+    */
     std::string message = con->buf;
     char* msg_c = to_cString(message);
-    id = msg_c[1];
-    role = msg_c[2];
+    id = msg_c[0];
+    role = msg_c[1];
+    std::cout << "Your ID:" << (int) id <<std::endl; 
+    std::cout << "Your role is: " << roleAsString(role) <<std::endl;
     std::string name;
+    //Get your own name
     do
     {
-        std::cout << "Enter your name: ";
+        std::cout << "Enter your name: "<<std::endl;;
         std::cin >> name;
     } while (name.length()>10);
-    char* name_c = to_cString(name);
-    auto write_handler_join = [this,con](error_code_t ec,size_t written)
-        {
-            if(!ec)
-            {
-                this->listen_for_answer(con);
-            }
-        };
-    char* join_msg = new char[16];
-    join_msg[0]=id;
-    join_msg[1]=role;
-    join_msg[2]=JOIN;
-    int rem;
-    for(int i=0;i< name.length()-1;i++)
-    {
-        join_msg[i+6]=name_c[i];
-        rem=i;
-    }
-    if(rem<10)
-    {
-        join_msg[rem]=' ';
-        rem++;
-    }
-    
-    strcpy(con->buf,join_msg);
-    auto buf =boost::asio::buffer(con->buf,100);
-    boost::asio::async_write(con->_sock,buf,write_handler_join);
+    phase=WEREWOLVEVOTING;
+    STD_WRITE_HANDLER
+    char* join_msg = ClientMessages::createJoinMessage(name,id,role);
+    STD_ASYNC_WRITE(join_msg)
 }
-
-char* Client::createDataRequest()
-{
-    char* msg = new char[16];
-    msg[0]=id;
-    msg[1]=role;
-    msg[2]=phase;
-    msg[3]=NOTDONE;
-    return msg;
-}
-
+//main will be moved soon
 int main()
 {
-
+    Client* c = new Client;
+    c->start();
 }

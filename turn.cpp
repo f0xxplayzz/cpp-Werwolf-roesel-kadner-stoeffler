@@ -12,6 +12,7 @@ class Game {
 	public:
 	int werewolveCount;
 	bool gameOver = false;
+	char winCondition = 4;
 
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> alivePlayers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> villagers = std::make_shared<std::vector<std::shared_ptr<Player>>>();
@@ -22,7 +23,6 @@ class Game {
 	std::shared_ptr<std::vector<std::shared_ptr<Player>>> diedThisCycle = std::make_shared<std::vector<std::shared_ptr<Player>>>();
 
 	void checkWinCondition() {
-
 		//Checks whether a team has won/lost. If both teams are dead the narrator wins.
 
 		if (villagers->size() + seers->size() == werewolves->size() && villagers->size() + seers->size() != 0) {
@@ -30,18 +30,21 @@ class Game {
 			Narrator nrt;
 			nrt.gameEndWerewolves();
 			gameOver = true;
+			winCondition=1;
 		}
 		if (werewolves->size() == 0  && (villagers->size() != 0 || !seers->empty())) {
 			//If there are no werewolves anymore and someone from the villagers survived they win.
 			Narrator nrt;
 			nrt.gameEndVillager();
 			gameOver = true;
+			winCondition=2;
 		}
 		if (werewolves->size() == 0 && villagers->size() == 0) {
 			//If no one is left alive, then the Narrator wins.
 			Narrator nrt;
 			nrt.gameEndDraw();
 			gameOver = true;
+			winCondition=3;
 		}
 		
 	}
@@ -115,6 +118,32 @@ class Game {
 		playerDeath(alivePlayers->at(mostVoted)->id);
 	}
 
+
+	char getMostVoted()
+	{
+		int mostVoted = 0;
+		int mostVotes = 0;
+		for (int i = 0; i < alivePlayers->size();i++) {
+			if (alivePlayers->at(i)->voteCounter > mostVotes) {
+				mostVotes = alivePlayers->at(i)->voteCounter;
+				mostVoted = i;
+			}
+		}
+		return alivePlayers->at(mostVoted)->id;
+	}
+
+	std::string getMostVoted_name()
+	{
+		int mostVoted = 0;
+		int mostVotes = 0;
+		for (int i = 0; i < alivePlayers->size();i++) {
+			if (alivePlayers->at(i)->voteCounter > mostVotes) {
+				mostVotes = alivePlayers->at(i)->voteCounter;
+				mostVoted = i;
+			}
+		}
+		return alivePlayers->at(mostVoted)->name;
+	}
 };
 
 void turnNight(std::shared_ptr<Game> game) {
