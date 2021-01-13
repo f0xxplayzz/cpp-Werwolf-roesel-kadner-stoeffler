@@ -87,6 +87,5 @@ std::vector<char> roleDeploymentNetwork(int playerCount) {
 			output.push_back('9');
 		}
 	}
-
 	return output;
 }
