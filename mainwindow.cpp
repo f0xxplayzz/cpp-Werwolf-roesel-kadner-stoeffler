@@ -6,8 +6,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    connect(ui->pushButton, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()));
 }
 
 MainWindow::~MainWindow()
@@ -15,9 +13,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::onButtonClicked()
+
+void MainWindow::on_pushButton_clicked()
 {
-    ui->label->setText(tr("Hello World"));
+    ui->stackedWidget->setCurrentIndex(1);
+    if(true){
+        ui->label->setText("test");
+    }
 }
 
-
+void MainWindow::on_pushButton_2_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}

@@ -7,6 +7,7 @@
 #include "utils/CppRandom.hpp"
 #include "mainwindow.h"
 #include <QApplication>
+#include <QtWidgets>
 
 
 bool nameAlreadyUsed (std::shared_ptr<Game> game, std::string name, bool output) {
