@@ -116,7 +116,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                 {
                     phaseCounter=0;
                     phase=WEREWOLVEVOTING;
-                    std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
                 }
             } 
             break;
@@ -155,7 +154,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     if(phaseCounter>=hostData->alivePlayers->size())
                     {
                         phase = SEER;
-                        std::cout << "Changed Phase to SEER" << std::endl;
                         phaseCounter = 0;
                     }
                 }
@@ -166,7 +164,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                     if(phaseCounter >= hostData->alivePlayers->size())
                     {
                         phase=SEER;
-                        std::cout << "Changed Phase to SEER" <<std::endl;
                         phaseCounter=0;
                     }
                     server_answer +=phase;
@@ -240,7 +237,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                         if(phaseCounter>=hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEKILL;
-                            std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
                             phaseCounter=0;
                         }
                     }
@@ -252,7 +248,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                         if(phaseCounter >= hostData->alivePlayers->size())
                         {
                             phase=WEREWOLVEKILL;
-                            std::cout << "Changed Phase to WEREWOLVEKILL" <<std::endl;
                             phaseCounter=0;
                         }
                     }
@@ -277,7 +272,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                         if(phaseCounter==hostData->alivePlayers->size()-1)
                         {
                             phase=VOTING;
-                            std::cout << "Changed Phase to VOTING" <<std::endl;
                             phaseCounter=0;
                             hostData->executeVotes();
                             hostData->checkWinCondition();
@@ -319,7 +313,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                         if(phaseCounter>=hostData->alivePlayers->size())
                         {
                             phase=EXECUTION;
-                            std::cout << "Changed phase to EXECUTION" <<std::endl;
                             phaseCounter=0;
                         }
                     }
@@ -343,7 +336,6 @@ void Server::handle_answer(std::shared_ptr<connection_t> con)
                         if(phaseCounter >= hostData->alivePlayers->size()-1)
                         {
                             phase=WEREWOLVEVOTING;
-                            std::cout << "Changed Phase to WEREWOLVEVOTING" <<std::endl;
                             phaseCounter=0;
                             hostData->executeVotes();
                             hostData->checkWinCondition();
@@ -399,7 +391,6 @@ void Server::write_join(std::shared_ptr<connection> con)
     STD_WRITE_HANDLER
     char* msg = new char [BUFFERLENGTH];
     msg[0] = idCounter++;
-    std::cout << "Client connected with ID: "<< (int) msg[0] <<std::endl;
     msg[1] = roles.at(roles.size()-1);
     roles.pop_back();
     STD_ASYNC_WRITE(msg)
