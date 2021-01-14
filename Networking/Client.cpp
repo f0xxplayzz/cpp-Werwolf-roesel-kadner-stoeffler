@@ -6,6 +6,7 @@
 #include "Definitions.hpp"
 #include "Makros.hpp"
 #include "Networkmessaging/ClientMessages.hpp"
+#include "./../narrator.cpp"
 
 class Client
 {
@@ -19,8 +20,12 @@ class Client
     void goSleeping();
     void requestAfterSleep(std::shared_ptr<connection_t> con);
 
+    Client()
+    {
+        narrator = new Narrator();
+    }
     private:
-
+    Narrator* narrator;
     char phase;
     char id;
     char role;
@@ -98,10 +103,12 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 /*
                     Let the player vote to kill another player if he is a werewolve
                 */
-                std::cout << "The complete village falls asleep" << std::endl;
-                std::cout << "The Werewolves wake up" << std::endl;
+                
                 if(role==WEREWOLVE_ROLE)
                 {
+                    narrator->gameStartWerewolve();
+                    narrator->dayEndWerewolve();
+                    narrator->werewolfNightStart();
                     //reads Data and processes it so the player can vote
                     std::vector<char> ids;
                     for(int i = 1;i <= server_answer_cString[1];i++)
@@ -111,11 +118,12 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     int start = ids.size()+2;
                     //create a substring to get voting possibilities as a string
                     std::string output = server_answer.substr(start);
-                    std::cout << "The following people can be killed:" << std::endl;
+                    narrator->voteKillStart();
                     std::cout << output << std::endl;
                     int vote = 0;
                     char result;
                     //Let the Player choose one Player to kill
+                    narrator->voteKillDecision();
                     do
                     {
                         std::string temp;
@@ -126,9 +134,12 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     //create the answer, ready to send
                     client_answer =  ClientMessages::createWerewolveVoting(voted,id,role);
                     phase = SEER;
+                    narrator->fallAsleep();
                 }
                 else
                 { 
+                    narrator->gameStartVillage();
+                    narrator->dayEndVillager();
                     //skips Voting-Event
                     client_answer =  ClientMessages::createSkipMessage(id,role,phase);
                     phase = SEER;
@@ -145,11 +156,11 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 /*
                     Let a player see the role of another player if he is a Seer
                 */
-                std::cout << "The Werewolves fall asleep" << std::endl;
-                std::cout << "The Seer wakes up" << std::endl;
+
                 //check if player is a seer
                 if(role==SEER_ROLE)
                 {
+                    narrator->seerNightStart();
                     std::vector<char> roles;
                     //process data from Server
                     int lengthV = (int) server_answer_cString[1];
@@ -160,10 +171,11 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     int start = roles.size()+2;
                     //creates substring to get possibilities as a string
                     std::string output = server_answer.substr(start);
-                    std::cout << "Which persons role do you want to see:" << std::endl;
+                    narrator->voteSeerStart();
                     std::cout << output << std::endl;
                     int vote = 1;
                     //vote now
+                    narrator->voteSeerDecision
                     do
                     {
                         std::string temp;
@@ -171,7 +183,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                         vote = std::stoi(temp);
                     } while (!(vote>0 && vote<=roles.size()));
                     int result = roles.at(vote-1);
-                    std::cout << "The person was a " << roleAsString(result) <<std::endl;
+                    narrator->voteSeerResult(roleAsString(result));
                     //create answer
                     client_answer =  ClientMessages::createSeerCompleted(id,role);
                     phase= WEREWOLVEKILL;
@@ -194,7 +206,6 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 if(!(server_answer.length() <=3))
                 {
                     phase=VOTING;
-                    std::cout << "The seer falls asleep" << std::endl;
                     std::string result = server_answer.substr(3);
                     if(server_answer_cString[2]==id)
                     {
@@ -204,7 +215,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     }
                     else{
                         //Tell Player who died
-                        std::cout << "The following person died tonight: " << result << std::endl;
+                        narrator->deathsKilled(result);
                     }
                     //create answer so server knows how many people checked in
                     client_answer =  ClientMessages::createWerewolveKillCompleted(id,role);
@@ -218,7 +229,6 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 /*
                     Let the players execute another Player
                 */
-                std::cout << "The complete village wakes up" << std::endl;
                 std::vector<char> ids;
                 //process Data
                 std::cout<<" "<<std::endl;
@@ -229,10 +239,11 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 int start = ids.size()+2;
                 //substr to see possibilities as a string
                 std::string output = server_answer.substr(start);
-                std::cout << "The following people can be voted to be executed:" << std::endl;
+                narrator->voteExecutionPossibilities();
                 std::cout << output << std::endl;
                 int vote = 1;
                 //vote now !!
+                narrator->voteExecutionChoice();
                 do
                 {
                     std::string temp;
@@ -265,7 +276,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     {
                         //tell player who died
                         phase=WEREWOLVEVOTING;
-                        std::cout << "The following person was executed: " << result << std::endl;
+                        narrator->deathsHung(result);
                     }
                     //create answer so the Server knows who has checked in
                     client_answer =  ClientMessages::createExecutionCompleted(id,role);
@@ -368,7 +379,6 @@ void Client::receive_join(std::shared_ptr<connection_t> con)
     char* msg_c = to_cString(message);
     id = msg_c[0];
     role = msg_c[1];
-    std::cout << "Your ID:" << (int) id <<std::endl; 
     std::cout << "Your role is: " << roleAsString(role) <<std::endl;
     std::string name;
     //Get your own name
