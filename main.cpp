@@ -58,9 +58,9 @@ int main()
         {
             case '1':
             {
-                std::cout << "How many Slots should your Server have?(4 to 10 Players are possible)" << std::endl;
+                std::cout << "How many Slots should your Server have?(5 to 10 Players are possible)" << std::endl;
                 int ch = 0;
-                while (ch<4 || ch>10) 
+                while (ch<5 || ch>10) 
                 {
                     std::string temp;
                     std::cout << "Enter a number: ";
