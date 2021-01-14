@@ -1,4 +1,5 @@
 
+#pragma once
 #include "tcp_connection.hpp"
 #include "Utilities.hpp"
 #include <stdio.h>
@@ -160,7 +161,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                 //check if player is a seer
                 if(role==SEER_ROLE)
                 {
-                    narrator->seerNightStart();
+                    narrator->seeerNightStart();
                     std::vector<char> roles;
                     //process data from Server
                     int lengthV = (int) server_answer_cString[1];
@@ -175,7 +176,7 @@ void Client::handle_answer(std::shared_ptr<connection_t> con)
                     std::cout << output << std::endl;
                     int vote = 1;
                     //vote now
-                    narrator->voteSeerDecision
+                    narrator->voteSeerDecision();
                     do
                     {
                         std::string temp;

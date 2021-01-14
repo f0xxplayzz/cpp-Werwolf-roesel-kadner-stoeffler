@@ -1,3 +1,5 @@
+#pragma once
+
 #include "tcp_connection.hpp"
 #include "./../turn.cpp"
 #include "Utilities.hpp"

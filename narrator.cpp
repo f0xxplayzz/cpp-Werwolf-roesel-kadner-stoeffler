@@ -66,12 +66,19 @@ class Narrator {
 			}
 		}
 
+		static void deathsKilled (std::string name) {
+				std::cout << " Unfortunately " << name << " has been murdered." << std::endl;
+		}
+
 		static void deathsHung (std::shared_ptr<std::vector<std::string>> names) {
 			for (int i = 0; i < names->size(); i++) {
 				std::cout << names->at(i) << " has been hung." << std::endl;
 			}
 		}
 
+		static void deathsHung (std::string name) {
+				std::cout << name << " has been hung." << std::endl;
+		}
 		static void seeerNightStart () {
 			std::cout << "You have awoken from your slumber." << std::endl;
 		}
@@ -120,6 +127,10 @@ class Narrator {
 			std::cout << name << " is a " << role << "!" << std::endl;
 		}
 
+		static void voteSeerResult( std::string role) {
+			std::cout << "The person is a " << role << "!" << std::endl;
+		}
+
 		static void gameEndVillager() {
 			std::cout << "The Villagers have won!" << std::endl;
 		}
@@ -155,6 +166,10 @@ class Narrator {
 		static void characterRoleReturn(std::string name, std::string role) {
 			std::cout << "You are a " << role << std::endl;
 			std::cout << "Good Luck " << name << "!" << std::endl;
+		}
+
+		static void fallAsleep(){
+			std::cout << "You fall asleep" << std::endl;
 		}
 
 };

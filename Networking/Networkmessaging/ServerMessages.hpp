@@ -85,7 +85,7 @@ namespace ServerMessages
     }
     std::string createVoting(Game* g, char id)
     {
-        //std::cout << "Sende vote" <<std::endl;
+        std::cout << " " <<std::endl;
         std::string result = "";
         std::string result2 = "";
         std::vector<char> ids;

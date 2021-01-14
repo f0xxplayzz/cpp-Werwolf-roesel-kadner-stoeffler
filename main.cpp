@@ -1,6 +1,18 @@
 #include "roleDeployment.cpp"
 #include "Networking/Server.cpp"
 #include "Networking/Client.cpp"
+#include <thread>
+
+void clientThread(Client* cl)
+{
+    cl->start();
+}
+
+void serverThread(Server* serv, int players)
+{
+    serv->setPlayers(players);
+    serv->start();
+}
 
 int main()
 {
@@ -42,22 +54,23 @@ int main()
             std::cout << "Enter a number: ";
             std::cin >> choice;
         };
-        switch(choice.c_str())
+        switch(choice.c_str()[0])
         {
             case '1':
             {
-                Server* serv = new Server();
                 std::cout << "How many Slots should your Server have?(4 to 10 Players are possible)" << std::endl;
                 int ch = 0;
                 while (ch<4 || ch>10) 
                 {
+                    std::string temp;
                     std::cout << "Enter a number: ";
-                    ch = std::stoi(std::cin);
+                    std::cin >> temp;
+                    ch = std::stoi(temp);
                 };
-                serv->setPlayers(ch);
-                std::thread server(serv->start());
+                Server* serv = new Server();
+                std::thread server(serverThread,serv,ch);
                 Client* cl = new Client();
-                std::thread client(cl->start())
+                std::thread client(clientThread,cl);
                 server.join();
                 client.join();
             }
@@ -65,7 +78,7 @@ int main()
             case '2':
             {
                 Client* cl = new Client();
-                std::thread client(cl->start());
+                std::thread client(clientThread,cl);
                 client.join();
             }
             break;
