@@ -6,4 +6,8 @@ Compile only the main.cpp file:
 -be sure ur winsockets are installed
 
 Known Bugs:
--
+-Less than 5 players -> game crashes.
+-Game crashes sometimes when Host dies first
+-WinCondition is spammed in the console
+
+Bugs are not fixed because of time limitations
