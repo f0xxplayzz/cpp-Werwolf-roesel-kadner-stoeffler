@@ -79,7 +79,6 @@ char* createVoting( char voted, char id, char role)
         res[3] = DONE;
         res[4] = 1;
         res[5] = voted;
-        std::cout<<"Sended voting ballot" << std::endl;
         return res;
     }
 char* createExecutionCompleted(char id, char role)

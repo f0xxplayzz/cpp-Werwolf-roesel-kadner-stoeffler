@@ -393,8 +393,3 @@ void Client::receive_join(std::shared_ptr<connection_t> con)
     STD_ASYNC_WRITE(join_msg)
 }
 //main will be moved soon
-int main()
-{
-    Client* c = new Client;
-    c->start();
-}

@@ -406,9 +406,3 @@ void Server::write_join(std::shared_ptr<connection> con)
 }
 
 
-int main()
-{
-    Server* serv = new Server();
-    serv->setPlayers(5);
-    serv->start();
-}
