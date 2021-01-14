@@ -1,4 +1,6 @@
 #include "roleDeployment.cpp"
+#include "Networking/Server.cpp"
+#include "Networking/Client.cpp"
 
 int main()
 {
@@ -40,6 +42,34 @@ int main()
             std::cout << "Enter a number: ";
             std::cin >> choice;
         };
+        switch(choice.c_str())
+        {
+            case '1':
+            {
+                Server* serv = new Server();
+                std::cout << "How many Slots should your Server have?(4 to 10 Players are possible)" << std::endl;
+                int ch = 0;
+                while (ch<4 || ch>10) 
+                {
+                    std::cout << "Enter a number: ";
+                    ch = std::stoi(std::cin);
+                };
+                serv->setPlayers(ch);
+                std::thread server(serv->start());
+                Client* cl = new Client();
+                std::thread client(cl->start())
+                server.join();
+                client.join();
+            }
+            break;
+            case '2':
+            {
+                Client* cl = new Client();
+                std::thread client(cl->start());
+                client.join();
+            }
+            break;
+        }
 
     } else if (mode == "3") {
         std::cout << "Good bye!";
