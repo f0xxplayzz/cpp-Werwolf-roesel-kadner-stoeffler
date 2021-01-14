@@ -2,7 +2,7 @@
 
 #include <string>
 #include <string.h>
-#include "Definitions.hpp"
+#include "Definitions.h"
 #include "./../utils/CppRandom.hpp"
 #include "./../turn.cpp"
 

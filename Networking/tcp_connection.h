@@ -5,7 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <stdio.h>
-#include "Definitions.hpp"
+#include "Definitions.h"
 
 using tcp = boost::asio::ip::tcp;
 using error_code_t = boost::system::error_code;

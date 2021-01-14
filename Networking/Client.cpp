@@ -1,11 +1,11 @@
 
 #pragma once
-#include "tcp_connection.hpp"
+#include "tcp_connection.h"
 #include "Utilities.hpp"
 #include <stdio.h>
 #include <iostream>
-#include "Definitions.hpp"
-#include "Makros.hpp"
+#include "Definitions.h"
+#include "Makros.h"
 #include "Networkmessaging/ClientMessages.hpp"
 #include "./../narrator.cpp"
 

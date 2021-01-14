@@ -1,5 +1,5 @@
-#include "./../Definitions.hpp"
-#include "./../Makros.hpp"
+#include "./../Definitions.h"
+#include "./../Makros.h"
 
 /*
     Structure of a Client Message:

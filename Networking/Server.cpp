@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tcp_connection.hpp"
+#include "tcp_connection.h"
 #include "./../turn.cpp"
 #include "Utilities.hpp"
-#include "Definitions.hpp"
+#include "Definitions.h"
 #include "Networkmessaging/ServerMessages.hpp"
 #include <algorithm>
 
@@ -13,12 +13,15 @@ public:
     Server();
     ~Server();
     void start();
+    void setPlayers(int i);
+
+private:
     void handle_accept(error_code_t ec, std::shared_ptr<connection_t> con);
     void write_join(std::shared_ptr<connection_t> con);
     void listen_for_answer(std::shared_ptr<connection_t> con);
     void handle_answer(std::shared_ptr<connection_t> con);
-    void setPlayers(int i);
-private:
+
+    //Data
     Game* hostData;
     std::vector<char> roles;
     std::string join_messages;
@@ -26,6 +29,7 @@ private:
     char phaseCounter;
     char playerCount;
     char idCounter = 5;
+    //NETWORK
     std::vector<std::shared_ptr<connection_t>> _connections;
     boost::asio::io_service _io_service;
     tcp::acceptor _acceptor;

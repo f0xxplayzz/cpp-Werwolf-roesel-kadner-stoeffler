@@ -1,5 +1,5 @@
-#include "./../Makros.hpp"
-#include "./../Definitions.hpp"
+#include "./../Makros.h"
+#include "./../Definitions.h"
 #include "./../../turn.cpp"
 #include <string>
 #include <vector>
